@@ -1,0 +1,67 @@
+import { Map, UsefulStuff } from "../../../Functions";
+import * as helpers from "./helpers";
+import { GroupApiRequestDTO, GroupApiResponseDTO } from "./dtos";
+import { ErrorResponseDTO } from "../../../Common/dtos";
+import { GroupModel } from "./models";
+import { IHttpClient } from "../../../Common/IHttpClient";
+import { NodeHttpClient } from "../../../Common/NodeHttpClient";
+import { ValidationResult } from "../../../Common/ValidationResult";
+import { IGroupCreateArgs } from "../interfaces";
+
+export class GroupCreateApi {
+    private url: string;
+    private authToken: string;
+    private entity: GroupApiRequestDTO;
+    private httpClient: IHttpClient;
+
+    constructor(args: { URL: string; AuthToken?: string; httpClient?: IHttpClient }) {
+        this.url = args.URL;
+        this.authToken = args.AuthToken || "";
+        this.entity = new GroupApiRequestDTO(args);
+        this.httpClient = args.httpClient ?? new NodeHttpClient(this.authToken);
+    }
+
+    public async Run(args?: IGroupCreateArgs): Promise<GroupApiResponseDTO | ErrorResponseDTO> {
+        if (args) {
+            Map(this.entity, args);
+        }
+
+        const currentEntity = this.entity;
+        this.entity = new GroupApiRequestDTO(); // Reset state for next call
+
+        const validation = this.validate(currentEntity);
+        if (!validation.valid) {
+            return helpers.MapApiResponse({
+                "Result": "Error",
+                "ErrorMessage": [validation.error || "An error occurred while processing."]
+            });
+        }
+
+        const responseData = await this.httpClient.post(this.url, currentEntity);
+        return helpers.MapApiResponse(responseData);
+    }
+
+    private validate(entity: GroupApiRequestDTO): ValidationResult {
+        if (UsefulStuff.isEmpty(this.authToken)) {
+            return { valid: false, error: "Missing AuthToken" };
+        }
+
+        const group = new GroupModel(entity);
+
+        if (UsefulStuff.isEmpty(group.GroupName)) {
+            return { valid: false, error: "Missing GroupName" };
+        }
+        if (group.ViewEditBy) {
+            switch (group.ViewEditBy.toUpperCase()) {
+                case "ACCOUNT":
+                case "SUBACCOUNT":
+                case "DEPARTMENT":
+                case "NO":
+                    break;
+                default:
+                    return { valid: false, error: "Invalid ViewEditBy option - must be Account/Subaccount/Department/No" };
+            }
+        }
+        return { valid: true };
+    }
+}

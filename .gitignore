@@ -1,0 +1,8 @@
+dist/
+node_modules/
+.vs/
+
+# Environment files — contain secrets, never commit
+.env
+.env.local
+.env.test
