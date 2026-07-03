@@ -54,7 +54,7 @@ console.log(result.MessageID);
 | `Mode` | `'Test'` | No | Validate without sending. |
 
 *Either `MessageToPeople` or `TemplateID` is required.  
-†Alternatively, use the top-level shorthand `Destination: '+6421000001'` for a single recipient.
+†Alternatively, use the top-level shorthand `ToNumber: '+6421000001'` for a single recipient (comma-separated for multiple) — internally resolves to a `MainPhone` destination, same as if you'd written `Destinations: [{ MainPhone: '+6421000001' }]`. `GroupID` and `ContactID` work the same way as top-level shorthands.
 
 ## Destination fields (`ITTSDestination`)
 
@@ -81,6 +81,26 @@ console.log(result.MessageID);
 | `PlaySection` | `string` | Named section to play: `Main`, `AnswerPhone`, or `WrongKey`. |
 
 ## Code samples
+
+### Single recipient shorthand
+
+```typescript
+const result = await client.Messaging.TTS.SendMessage({
+  MessageToPeople: 'Hello, this is a reminder about your appointment tomorrow.',
+  ToNumber: '+6421000001',
+});
+
+// GroupID and ContactID work the same way as top-level shorthands
+const toGroup = await client.Messaging.TTS.SendMessage({
+  MessageToPeople: 'Hello, this is a reminder about your appointment tomorrow.',
+  GroupID: '4000000b-f002-4007-b00a-c00000000002',
+});
+
+const toContact = await client.Messaging.TTS.SendMessage({
+  MessageToPeople: 'Hello, this is a reminder about your appointment tomorrow.',
+  ContactID: '8000000a-f002-4007-b00a-d00000000001',
+});
+```
 
 ### With voice, answerphone message, and CallerID
 

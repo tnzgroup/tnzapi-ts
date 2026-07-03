@@ -51,7 +51,7 @@ console.log(result.MessageID);
 | `Mode` | `'Test'` | No | Validate without sending. |
 
 *At least one of `MessagePlain`, `MessageHTML`, or `TemplateID` is required.  
-†Alternatively, use the top-level shorthand `Destination: 'user@example.com'` for a single recipient.
+†Alternatively, use the top-level shorthand `EmailAddress: 'user@example.com'` for a single recipient (comma-separated for multiple, e.g. `'a@example.com,b@example.com'`). `GroupID` and `ContactID` work the same way as top-level shorthands.
 
 ## Destination fields (`IEmailDestination`)
 
@@ -69,6 +69,36 @@ console.log(result.MessageID);
 | `GroupCode` | Group lookup by code. |
 
 ## Code samples
+
+### Single recipient shorthand
+
+```typescript
+const result = await client.Messaging.Email.SendMessage({
+  EmailSubject: 'Your invoice',
+  MessagePlain: 'Please find your invoice attached.',
+  EmailAddress: 'customer@example.com',
+});
+
+// Comma-separated values create multiple destinations
+const bulk = await client.Messaging.Email.SendMessage({
+  EmailSubject: 'Your invoice',
+  MessagePlain: 'Please find your invoice attached.',
+  EmailAddress: 'alice@example.com,bob@example.com',
+});
+
+// GroupID and ContactID work the same way as top-level shorthands
+const toGroup = await client.Messaging.Email.SendMessage({
+  EmailSubject: 'Your invoice',
+  MessagePlain: 'Please find your invoice attached.',
+  GroupID: '4000000b-f002-4007-b00a-c00000000002',
+});
+
+const toContact = await client.Messaging.Email.SendMessage({
+  EmailSubject: 'Your invoice',
+  MessagePlain: 'Please find your invoice attached.',
+  ContactID: '8000000a-f002-4007-b00a-d00000000001',
+});
+```
 
 ### HTML + plain-text with attachment
 

@@ -178,7 +178,10 @@ const client = new TNZAPI();
 // Send an SMS
 const result = await client.Messaging.SMS.SendMessage({
     Message: "Hello from tnzapi-ts!",
-    Destinations: [{ ToNumber: "+64211234567" }]
+    Destinations: [
+        { ToNumber: "+64211234567" },
+        { ToNumber: "+64251234567" }
+    ]
 });
 
 console.log(result.Result);    // "Success"
@@ -256,6 +259,14 @@ console.log(result.MessageID); // Track this for status reports
 | `SMSEmailReply` | `string` | Email to receive SMS replies |
 | `CharacterConversion` | `boolean` | Convert non-GSM characters |
 
+**Single-recipient shorthand:**
+```typescript
+const result = await client.Messaging.SMS.SendMessage({
+    Message: "Hello! Your code is 1234.",
+    ToNumber: "+64211234567"
+});
+```
+
 **With scheduling and webhook:**
 ```typescript
 import { WebhookCallbackFormat } from 'tnzapi-ts';
@@ -265,7 +276,10 @@ const result = await client.Messaging.SMS.SendMessage({
     Message: "Your appointment is tomorrow at 9am.",
     SendTime: "2030-06-01 08:00",
     Timezone: "New Zealand",
-    Destinations: [{ ToNumber: "+64211234567" }],
+    Destinations: [
+        { ToNumber: "+64271234567" },
+        { ToNumber: "+64281234567" }
+    ],
     WebhookCallbackURL: "https://yourapp.com/webhooks/sms",
     WebhookCallbackFormat: WebhookCallbackFormat.JSON
 });
@@ -276,7 +290,10 @@ const result = await client.Messaging.SMS.SendMessage({
 const result = await client.Messaging.SMS.SendMessage({
     Message: "Test",
     Mode: "Test",
-    Destinations: [{ ToNumber: "+64211234567" }]
+    Destinations: [
+        { ToNumber: "+64291234567" },
+        { ToNumber: "+64211234568" }
+    ]
 });
 ```
 
@@ -322,6 +339,15 @@ const result = await client.Messaging.Email.SendMessage({
 | `BCCEmail` | `string` | BCC email address |
 | `Attachments` | `string[]` | Paths to local files to attach |
 
+**Single-recipient shorthand:**
+```typescript
+const result = await client.Messaging.Email.SendMessage({
+    EmailSubject: "Your monthly statement",
+    MessagePlain: "Please find your statement attached.",
+    EmailAddress: "customer@example.com"
+});
+```
+
 **With HTML body and attachment:**
 ```typescript
 const result = await client.Messaging.Email.SendMessage({
@@ -330,7 +356,10 @@ const result = await client.Messaging.Email.SendMessage({
     MessageHTML: "<h1>Invoice</h1><p>Please find your invoice attached.</p>",
     MessagePlain: "Invoice attached.",
     Attachments: ["/path/to/invoice-1001.pdf"],
-    Destinations: [{ EmailAddress: "customer@example.com" }]
+    Destinations: [
+        { EmailAddress: "carol@example.com" },
+        { EmailAddress: "dave@example.com" }
+    ]
 });
 ```
 
@@ -373,6 +402,14 @@ const result = await client.Messaging.Fax.SendMessage({
 | `WatermarkFirstPage` | `string` | Watermark file applied to first page |
 | `WatermarkAllPages` | `string` | Watermark file applied to all pages |
 
+**Single-recipient shorthand:**
+```typescript
+const result = await client.Messaging.Fax.SendMessage({
+    ToNumber: "+6491234567",
+    Attachments: ["/path/to/document.pdf"]
+});
+```
+
 **With retry settings and watermark:**
 ```typescript
 import { FaxResolution } from 'tnzapi-ts';
@@ -382,7 +419,10 @@ const result = await client.Messaging.Fax.SendMessage({
     Resolution: FaxResolution.High,
     RetryAttempts: 5,
     RetryPeriod: 10,
-    Destinations: [{ ToNumber: "+6491234567" }],
+    Destinations: [
+        { ToNumber: "+6441234567" },
+        { ToNumber: "+6431234567" }
+    ],
     Attachments: ["/path/to/contract.pdf"]
 });
 ```
@@ -431,6 +471,14 @@ const result = await client.Messaging.TTS.SendMessage({
 | `Options` | `string` | Additional call options (raw passthrough) |
 | `Keypads` | `ITTSKeypad[]` | IVR keypad routing options |
 
+**Single-recipient shorthand:**
+```typescript
+const result = await client.Messaging.TTS.SendMessage({
+    MessageToPeople: "Hello, this is a reminder about your appointment tomorrow at 9am.",
+    ToNumber: "+64211234567"
+});
+```
+
 **With answerphone message and keypad routing:**
 ```typescript
 import { TTSVoice, AnswerPhoneMode } from 'tnzapi-ts';
@@ -443,7 +491,10 @@ const result = await client.Messaging.TTS.SendMessage({
     CallerID: "+6491234567",
     RetryAttempts: 3,
     RetryPeriod: 5,
-    Destinations: [{ MainPhone: "+64211234567" }],
+    Destinations: [
+        { MainPhone: "+64271234567" },
+        { MainPhone: "+64291234567" }
+    ],
     Keypads: [
         { Tone: 1, RouteNumber: "+6491234567" },   // Transfer to operator on key 1
         { Tone: 2, Play: "Thank you, your appointment has been cancelled." }
@@ -465,7 +516,10 @@ import { TNZAPI } from 'tnzapi-ts';
 const client = new TNZAPI();
 
 const result = await client.Messaging.Voice.SendMessage({
-    Destinations: [{ MainPhone: "+64211234567" }],
+    Destinations: [
+        { MainPhone: "+64221234567" },
+        { MainPhone: "+64281234567" }
+    ],
     VoiceFiles: [
         {
             Name: "MessageToPeople",       // Which part of the call this file plays for
@@ -497,10 +551,23 @@ const result = await client.Messaging.Voice.SendMessage({
 | `Options` | `string` | Additional call options (raw passthrough) |
 | `Keypads` | `IVoiceKeypad[]` | IVR keypad options (can include audio `File`) |
 
+**Single-recipient shorthand:**
+```typescript
+const result = await client.Messaging.Voice.SendMessage({
+    ToNumber: "+64211234567",
+    VoiceFiles: [
+        { Name: "MessageToPeople", File: "/path/to/message.wav" }
+    ]
+});
+```
+
 **Multiple audio files with keypad routing:**
 ```typescript
 const result = await client.Messaging.Voice.SendMessage({
-    Destinations: [{ MainPhone: "+64211234567" }],
+    Destinations: [
+        { MainPhone: "+64251234567" },
+        { MainPhone: "+64211234568" }
+    ],
     VoiceFiles: [
         { Name: "MessageToPeople",     File: "/audio/main-message.wav" },
         { Name: "MessageToAnswerPhones", File: "/audio/voicemail.wav" }
@@ -525,7 +592,10 @@ const client = new TNZAPI();
 
 const result = await client.Messaging.WhatsApp.SendMessage({
     Message: "Hello! Your order has been dispatched.",
-    Destinations: [{ ToNumber: "+64211234567" }]
+    Destinations: [
+        { ToNumber: "+64221234568" },
+        { ToNumber: "+64211234567" }
+    ]
 });
 ```
 
@@ -544,6 +614,14 @@ const result = await client.Messaging.WhatsApp.SendMessage({
 | `ReportTo` | `string` | Email address to receive delivery reports |
 | `Attachments` | `string[]` | Paths to local media files to attach |
 
+**Single-recipient shorthand:**
+```typescript
+const result = await client.Messaging.WhatsApp.SendMessage({
+    Message: "Hello! Your order has been dispatched.",
+    ToNumber: "+64211234567"
+});
+```
+
 ---
 
 ### Send RCS Message
@@ -557,7 +635,10 @@ const client = new TNZAPI();
 
 const result = await client.Messaging.RCS.SendMessage({
     Message: "Hello [[FirstName]], your appointment is confirmed.",
-    Destinations: [{ ToNumber: "+6421000001", FirstName: "Alice" }]
+    Destinations: [
+        { ToNumber: "+6421000001", FirstName: "Alice" },
+        { ToNumber: "+6421000002", FirstName: "Bob" }
+    ]
 });
 ```
 
@@ -573,6 +654,14 @@ const result = await client.Messaging.RCS.SendMessage({
 | `GroupID` | `string` | Single-group shorthand (alternative to `Destinations`); comma-separated for multiple |
 | `ContactID` | `string` | Single-contact shorthand (alternative to `Destinations`); comma-separated for multiple |
 | `FromNumber` | `string` | Sender ID or number |
+
+**Single-recipient shorthand:**
+```typescript
+const result = await client.Messaging.RCS.SendMessage({
+    Message: "Hello, your appointment is confirmed.",
+    ToNumber: "+6421000001"
+});
+```
 
 ---
 
@@ -590,7 +679,8 @@ const client = new TNZAPI();
 const result = await client.Messaging.Workflow.SendMessage({
     WorkflowTemplateID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     Destinations: [
-        { ContactID: "cc5c3871-0d29-11f1-95bd-ae5f86698b98" }
+        { ContactID: "cc5c3871-0d29-11f1-95bd-ae5f86698b98" },
+        { ContactID: "8000000a-f002-4007-b00a-d00000000002" }
     ]
 });
 ```
@@ -606,7 +696,15 @@ const result = await client.Messaging.Workflow.SendMessage({
 | `GroupID` | `string` | Single-group shorthand (alternative to `Destinations`); comma-separated for multiple |
 | `ContactID` | `string` | Single-contact shorthand (alternative to `Destinations`); comma-separated for multiple |
 
-> **Note:** Inline destinations (`ToNumber`, `EmailAddress`, `MainPhone`) automatically create a new addressbook entry for the recipient.
+> **Note:** Inline destinations (`ToNumber`, `EmailAddress`, `MainPhone`) automatically create a new addressbook entry for the recipient, or update a matching existing one if a contact with that phone/email already exists in your addressbook. This also applies to the top-level `ToNumber`/`MainPhone` shorthand fields above — they resolve internally to exactly the same `Destinations: [{ ToNumber: ... }]` / `[{ MainPhone: ... }]` shape, so sending a Workflow request via shorthand without a `ContactID`/`GroupID` will create-or-update an addressbook contact, the same as writing out the `Destinations` array by hand. (`EmailAddress` is not available as a top-level shorthand for Workflow — only inside `Destinations`.)
+
+**Single-recipient shorthand:**
+```typescript
+const result = await client.Messaging.Workflow.SendMessage({
+    WorkflowTemplateID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    ContactID: "cc5c3871-0d29-11f1-95bd-ae5f86698b98"
+});
+```
 
 ---
 
@@ -664,10 +762,23 @@ await client.Messaging.SMS.SendMessage({
     ToNumber: "+64211234567,+64221234567"
 });
 
-// GroupID / ContactID work the same way, and combine additively with Destinations
+// GroupID works the same way, and combines additively with Destinations
 await client.Messaging.SMS.SendMessage({
     Message: "Hello!",
     GroupID: "4000000b-f002-4007-b00a-c00000000005"
+});
+
+// So does ContactID — available on every channel, comma-separated for multiple
+await client.Messaging.SMS.SendMessage({
+    Message: "Hello!",
+    ContactID: "cc5c3871-0d29-11f1-95bd-ae5f86698b98,8000000a-f002-4007-b00a-d00000000002"
+});
+
+// Email uses EmailAddress instead of ToNumber — same comma-separated behaviour
+await client.Messaging.Email.SendMessage({
+    EmailSubject: "Your invoice",
+    MessagePlain: "Please find your invoice attached.",
+    EmailAddress: "alice@example.com,bob@example.com"
 });
 ```
 
@@ -730,7 +841,10 @@ await client.Messaging.SMS.SendMessage({
     Message: "Good morning! Today's meeting is at 10am.",
     SendTime: "2030-12-25 08:00",
     Timezone: "New Zealand",
-    Destinations: [{ ToNumber: "+64211234567" }]
+    Destinations: [
+        { ToNumber: "+64281234567" },
+        { ToNumber: "+64291234567" }
+    ]
 });
 ```
 
@@ -747,7 +861,10 @@ import { WebhookCallbackFormat } from 'tnzapi-ts';
 
 await client.Messaging.SMS.SendMessage({
     Message: "Hello!",
-    Destinations: [{ ToNumber: "+64211234567" }],
+    Destinations: [
+        { ToNumber: "+64251234567" },
+        { ToNumber: "+64221234568" }
+    ],
     WebhookCallbackURL: "https://yourapp.com/webhooks/tnz",
     WebhookCallbackFormat: WebhookCallbackFormat.JSON   // JSON | XML | POST | GET
 });
@@ -1333,7 +1450,10 @@ const client = new TNZAPI();
 
 const result = await client.Messaging.SMS.SendMessage({
     Message: "Hello!",
-    Destinations: [{ ToNumber: "+64211234567" }]
+    Destinations: [
+        { ToNumber: "+64211234568" },
+        { ToNumber: "+64271234567" }
+    ]
 });
 
 if (result.Result === "Success") {

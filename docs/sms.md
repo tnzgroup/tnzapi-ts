@@ -45,7 +45,7 @@ console.log(result.MessageID); // e.g. "P1ABCDE"
 | `Mode` | `'Test'` | No | Validate the request without sending. |
 
 *Either `Message` or `TemplateID` must be provided.  
-†Alternatively, use the top-level shorthand `Destination: '+6421000001'` for a single recipient without wrapping in an array.
+†Alternatively, use the top-level shorthand `ToNumber: '+6421000001'` for a single recipient without wrapping in an array (comma-separated for multiple, e.g. `'+6421000001,+6421000002'`). `GroupID` and `ContactID` work the same way as top-level shorthands.
 
 ## Destination fields (`ISMSDestination`)
 
@@ -81,7 +81,24 @@ const result = await client.Messaging.SMS.SendMessage({
 ```typescript
 const result = await client.Messaging.SMS.SendMessage({
   Message: 'Office closed today.',
-  Destination: '+6421000001',
+  ToNumber: '+6421000001',
+});
+
+// Comma-separated values create multiple destinations
+const bulk = await client.Messaging.SMS.SendMessage({
+  Message: 'Office closed today.',
+  ToNumber: '+6421000001,+6421000002',
+});
+
+// GroupID and ContactID work the same way as top-level shorthands
+const toGroup = await client.Messaging.SMS.SendMessage({
+  Message: 'Office closed today.',
+  GroupID: '4000000b-f002-4007-b00a-c00000000002',
+});
+
+const toContact = await client.Messaging.SMS.SendMessage({
+  Message: 'Office closed today.',
+  ContactID: '8000000a-f002-4007-b00a-d00000000001',
 });
 ```
 

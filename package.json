@@ -4,6 +4,16 @@
   "description": "TypeScript Library for TNZ Group REST API v3.00 — SMS, Email, Fax, TTS, Voice, WhatsApp, Workflow, Addressbook, Opt-Out",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tnzgroup/tnzapi-ts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tnzgroup/tnzapi-ts/issues"
+  },
   "scripts": {
     "build": "tsc",
     "test": "jest",

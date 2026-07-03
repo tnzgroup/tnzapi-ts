@@ -43,7 +43,7 @@ console.log(result.MessageID);
 | `Mode` | `'Test'` | No | Validate without sending. |
 
 *Either `Message` or `TemplateID` is required.  
-†Alternatively, use the top-level shorthand `Destination: '+6421000001'` for a single recipient.
+†Alternatively, use the top-level shorthand `ToNumber: '+6421000001'` for a single recipient (comma-separated for multiple). `GroupID` and `ContactID` work the same way as top-level shorthands.
 
 ## Destination fields (`IWhatsAppDestination`)
 
@@ -61,6 +61,26 @@ console.log(result.MessageID);
 | `GroupCode` | Group lookup by code. |
 
 ## Code samples
+
+### Single recipient shorthand
+
+```typescript
+const result = await client.Messaging.WhatsApp.SendMessage({
+  Message: 'Your order has been dispatched.',
+  ToNumber: '+6421000001',
+});
+
+// GroupID and ContactID work the same way as top-level shorthands
+const toGroup = await client.Messaging.WhatsApp.SendMessage({
+  Message: 'Your order has been dispatched.',
+  GroupID: '4000000b-f002-4007-b00a-c00000000002',
+});
+
+const toContact = await client.Messaging.WhatsApp.SendMessage({
+  Message: 'Your order has been dispatched.',
+  ContactID: '8000000a-f002-4007-b00a-d00000000001',
+});
+```
 
 ### With SMS fallback
 

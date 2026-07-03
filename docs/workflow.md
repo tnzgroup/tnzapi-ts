@@ -36,13 +36,13 @@ console.log(result.MessageID);
 | `WebhookCallbackFormat` | `WebhookCallbackFormat` | No | `JSON`, `XML`, `POST`, or `GET`. |
 | `Mode` | `'Test'` | No | Validate without triggering. |
 
-†Alternatively, use the top-level shorthand `ContactID: '8000000a-f002-4007-b00a-d00000000001'` or `GroupID: '4000000b-f002-4007-b00a-c00000000002'` for a single target.
+†Alternatively, use the top-level shorthand `ContactID: '8000000a-f002-4007-b00a-d00000000001'` or `GroupID: '4000000b-f002-4007-b00a-c00000000002'` for a single target — `ToNumber` and `MainPhone` also work as top-level shorthands (unlike other channels, these are two distinct fields here, not aliases of each other). All accept comma-separated values for multiple targets.
 
 > **Note:** Workflow does not support `ReportTo`, `NotificationType`, or `Attachments`.
 
 ## Destination fields (`IWorkflowDestination`)
 
-Destinations can reference existing addressbook contacts/groups, or specify a new contact inline — the API will create an addressbook entry automatically.
+Destinations can reference existing addressbook contacts/groups, or specify a new contact inline — the API will create an addressbook entry automatically, or update a matching existing one if a contact with that phone/email already exists.
 
 | Field | Description |
 |-------|-------------|
@@ -70,7 +70,33 @@ const result = await client.Messaging.Workflow.SendMessage({
 });
 ```
 
-### Inline new contact (auto-created in addressbook)
+### Single target shorthand
+
+```typescript
+// ContactID shorthand
+const result = await client.Messaging.Workflow.SendMessage({
+  WorkflowTemplateID: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+  ContactID: '8000000a-f002-4007-b00a-d00000000001',
+});
+
+// GroupID shorthand — runs the workflow for every member of the group
+const toGroup = await client.Messaging.Workflow.SendMessage({
+  WorkflowTemplateID: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+  GroupID: '4000000b-f002-4007-b00a-c00000000002',
+});
+
+// ToNumber and MainPhone are independent shorthands — combine them to run the
+// workflow for both a raw phone destination and a raw voice destination
+const combined = await client.Messaging.Workflow.SendMessage({
+  WorkflowTemplateID: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+  ToNumber: '+6421000001',
+  MainPhone: '+6491000001',
+});
+```
+
+> **Note:** `ToNumber`/`MainPhone` shorthand resolves internally to the same `Destinations: [{ ToNumber: ... }]` / `[{ MainPhone: ... }]` shape as writing the array by hand — so using either without a `ContactID`/`GroupID` creates a new addressbook contact for that recipient, or updates a matching existing one if a contact with that phone/email already exists, exactly like the inline destination fields below. `EmailAddress` is not available as a top-level shorthand for Workflow (only `ToNumber`/`MainPhone`/`GroupID`/`ContactID` are) — it only works inside the `Destinations` array, as shown next.
+
+### Inline new contact (auto-created or updated in addressbook)
 
 ```typescript
 const result = await client.Messaging.Workflow.SendMessage({

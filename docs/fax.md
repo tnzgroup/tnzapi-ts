@@ -49,7 +49,7 @@ console.log(result.MessageID);
 | `Mode` | `'Test'` | No | Validate without sending. |
 
 *Either `Attachments` or `TemplateID` is required.  
-†Alternatively, use the top-level shorthand `Destination: '+6491000001'` for a single recipient.
+†Alternatively, use the top-level shorthand `ToNumber: '+6491000001'` for a single recipient (comma-separated for multiple). `GroupID` and `ContactID` work the same way as top-level shorthands.
 
 ## Destination fields (`IFaxDestination`)
 
@@ -67,6 +67,26 @@ console.log(result.MessageID);
 | `GroupCode` | Group lookup by code. |
 
 ## Code samples
+
+### Single recipient shorthand
+
+```typescript
+const result = await client.Messaging.Fax.SendMessage({
+  Attachments: ['/path/to/document.pdf'],
+  ToNumber: '+6491000001',
+});
+
+// GroupID and ContactID work the same way as top-level shorthands
+const toGroup = await client.Messaging.Fax.SendMessage({
+  Attachments: ['/path/to/document.pdf'],
+  GroupID: '4000000b-f002-4007-b00a-c00000000002',
+});
+
+const toContact = await client.Messaging.Fax.SendMessage({
+  Attachments: ['/path/to/document.pdf'],
+  ContactID: '8000000a-f002-4007-b00a-d00000000001',
+});
+```
 
 ### High resolution with CSID and retry settings
 

@@ -56,7 +56,7 @@ console.log(result.MessageID);
 | `Mode` | `'Test'` | No | Validate without sending. |
 
 *At least one of `VoiceFiles`/`MessageToPeople` or `TemplateID` is required.  
-†Alternatively, use the top-level shorthand `Destination: '+6421000001'` for a single recipient.
+†Alternatively, use the top-level shorthand `ToNumber: '+6421000001'` for a single recipient (comma-separated for multiple) — internally resolves to a `MainPhone` destination, same as if you'd written `Destinations: [{ MainPhone: '+6421000001' }]`. `GroupID` and `ContactID` work the same way as top-level shorthands.
 
 ## VoiceFile fields (`IVoiceFile`) — SDK convenience
 
@@ -94,6 +94,26 @@ Each entry maps a local WAV file to a named audio field on the API request.
 | `File` | `string` | SDK convenience: local WAV file path. Encoded to base64 and sent as `PlayFile`. |
 
 ## Code samples
+
+### Single recipient shorthand
+
+```typescript
+const result = await client.Messaging.Voice.SendMessage({
+  VoiceFiles: [{ Name: 'MessageToPeople', File: '/path/to/message.wav' }],
+  ToNumber: '+6421000001',
+});
+
+// GroupID and ContactID work the same way as top-level shorthands
+const toGroup = await client.Messaging.Voice.SendMessage({
+  VoiceFiles: [{ Name: 'MessageToPeople', File: '/path/to/message.wav' }],
+  GroupID: '4000000b-f002-4007-b00a-c00000000002',
+});
+
+const toContact = await client.Messaging.Voice.SendMessage({
+  VoiceFiles: [{ Name: 'MessageToPeople', File: '/path/to/message.wav' }],
+  ContactID: '8000000a-f002-4007-b00a-d00000000001',
+});
+```
 
 ### Separate live and answerphone audio
 

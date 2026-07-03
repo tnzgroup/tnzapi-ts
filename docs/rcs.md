@@ -41,7 +41,8 @@ console.log(result.MessageID);
 | `NotificationType` | `NotificationType` | No | `None`, `Webhook`, or `Email`. |
 | `Mode` | `'Test'` | No | Validate without sending. |
 
-*Either `Message` or `TemplateID` is required.
+*Either `Message` or `TemplateID` is required.  
+†Alternatively, use the top-level shorthand `ToNumber: '+6421000001'` for a single recipient (comma-separated for multiple). `GroupID` and `ContactID` work the same way as top-level shorthands.
 
 ## Destination fields (`IRCSDestination`)
 
@@ -59,6 +60,26 @@ console.log(result.MessageID);
 | `GroupCode` | Group lookup by code. |
 
 ## Code samples
+
+### Single recipient shorthand
+
+```typescript
+const result = await client.Messaging.RCS.SendMessage({
+  Message: 'Hello, your appointment is confirmed.',
+  ToNumber: '+6421000001',
+});
+
+// GroupID and ContactID work the same way as top-level shorthands
+const toGroup = await client.Messaging.RCS.SendMessage({
+  Message: 'Hello, your appointment is confirmed.',
+  GroupID: '4000000b-f002-4007-b00a-c00000000002',
+});
+
+const toContact = await client.Messaging.RCS.SendMessage({
+  Message: 'Hello, your appointment is confirmed.',
+  ContactID: '8000000a-f002-4007-b00a-d00000000001',
+});
+```
 
 ### Personalised send
 
