@@ -1,6 +1,8 @@
 import { EmailApi } from '../../../src/Api/Messaging/EmailApi';
 import { IHttpClient } from '../../../src/Common/IHttpClient';
-import { WebhookCallbackFormat, NotificationType } from '../../../src/Common/enums/MessagingEnums';
+import { WebhookCallbackFormat } from '../../../src/Common/enums/MessagingEnums';
+import { expectNoLeakedConstructorArgs } from '../testHelpers';
+import { ErrorResponseDTO, IEmailArgs } from '../../../src';
 
 const AUTH = 'test-auth-token';
 const BASE_URL = process.env.TNZ_API_URL ?? 'https://api.tnz.co.nz/api/v3.00';
@@ -28,7 +30,7 @@ describe('EmailApi — validation', () => {
             Destinations: [{ EmailAddress: 'a@b.com' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/AuthToken/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/AuthToken/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -37,9 +39,9 @@ describe('EmailApi — validation', () => {
         const result = await api.SendMessage({
             MessagePlain: 'body',
             Destinations: [{ EmailAddress: 'a@b.com' }],
-        } as any);
+        } as unknown as IEmailArgs);
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/EmailSubject/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/EmailSubject/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -48,9 +50,9 @@ describe('EmailApi — validation', () => {
         const result = await api.SendMessage({
             EmailSubject: 'Test',
             Destinations: [{ EmailAddress: 'a@b.com' }],
-        } as any);
+        });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/MessagePlain|TemplateID/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/MessagePlain|TemplateID/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -84,7 +86,7 @@ describe('EmailApi — validation', () => {
             EmailSubject: 'Test', MessagePlain: 'body', Destinations: [],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Destination/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Destination/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -95,7 +97,7 @@ describe('EmailApi — validation', () => {
             Destinations: [{ EmailAddress: 'not-an-email' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/EmailAddress/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/EmailAddress/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -103,11 +105,11 @@ describe('EmailApi — validation', () => {
         const { api, httpClient } = makeApi();
         const result = await api.SendMessage({
             EmailSubject: 'Test', MessagePlain: 'body',
-            Mode: 'Production' as any,
+            Mode: 'Production' as unknown as 'Test',
             Destinations: [{ EmailAddress: 'a@b.com' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Mode/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Mode/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -134,7 +136,7 @@ describe('EmailApi — validation', () => {
             FromEmail: 'sender@company.com',
             ReplyTo: 'replies@company.com',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.FromEmail).toBe('sender@company.com');
         expect(payload.ReplyTo).toBe('replies@company.com');
         expect(payload.EmailFrom).toBeUndefined();
@@ -153,7 +155,7 @@ describe('EmailApi — validation', () => {
                 Company: 'Acme',
             }],
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Destinations[0].EmailAddress).toBe('jane@example.com');
         expect(payload.Destinations[0].FirstName).toBe('Jane');
     });
@@ -183,7 +185,7 @@ describe('EmailApi — single-destination shorthand', () => {
             EmailAddress: 'alice@example.com',
         });
         expect(result.Result).toBe('Success');
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Destinations).toHaveLength(1);
         expect(payload.Destinations[0].EmailAddress).toBe('alice@example.com');
     });
@@ -196,7 +198,7 @@ describe('EmailApi — single-destination shorthand', () => {
             MessagePlain: 'Hello',
             EmailAddress: 'alice@example.com,bob@example.com',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Destinations).toHaveLength(2);
         expect(payload.Destinations.map((d: any) => d.EmailAddress)).toEqual([
             'alice@example.com', 'bob@example.com',
@@ -212,7 +214,7 @@ describe('EmailApi — single-destination shorthand', () => {
             GroupID: '4000000b-f002-4007-b00a-c00000000005',
             ContactID: '00000000-0000-0000-0000-000000000001',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Destinations).toHaveLength(2);
     });
 
@@ -225,7 +227,7 @@ describe('EmailApi — single-destination shorthand', () => {
             EmailAddress: 'alice@example.com',
             Destinations: [{ EmailAddress: 'bob@example.com' }],
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Destinations).toHaveLength(2);
     });
 
@@ -237,7 +239,7 @@ describe('EmailApi — single-destination shorthand', () => {
             EmailAddress: 'not-an-email',
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/EmailAddress/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/EmailAddress/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -251,10 +253,18 @@ describe('EmailApi — single-destination shorthand', () => {
             GroupID: '4000000b-f002-4007-b00a-c00000000005',
             ContactID: '00000000-0000-0000-0000-000000000001',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.EmailAddress).toBeUndefined();
         expect(payload.GroupID).toBeUndefined();
         expect(payload.ContactID).toBeUndefined();
+    });
+
+    it('never leaks the constructor-only URL/AuthToken/httpClient into the very first SendMessage payload', async () => {
+        const httpClient = makeMockHttpClient();
+        httpClient.post.mockResolvedValueOnce({ Result: 'Success', MessageID: 'email-first1' });
+        const api = new EmailApi({ URL: BASE_URL, AuthToken: 'super-secret-token', httpClient });
+        await api.SendMessage({ EmailSubject: 'Hi', MessagePlain: 'Hello', EmailAddress: 'alice@example.com' });
+        expectNoLeakedConstructorArgs(httpClient.post.mock.calls[0][1] as Record<string, unknown>);
     });
 
 });

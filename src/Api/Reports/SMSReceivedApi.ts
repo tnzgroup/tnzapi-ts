@@ -17,7 +17,7 @@ export class SMSReceivedApi {
     constructor(args: { URL: string; AuthToken?: string; httpClient?: IHttpClient }) {
         this.baseUrl = args.URL;
         this.authToken = args.AuthToken || "";
-        this.entity = new SMSReceivedApiRequestDTO(args);
+        this.entity = new SMSReceivedApiRequestDTO();
         this.httpClient = args.httpClient ?? new NodeHttpClient(this.authToken);
     }
 
@@ -41,7 +41,7 @@ export class SMSReceivedApi {
         }
 
         const currentEntity = this.entity;
-        this.entity = new SMSReceivedApiRequestDTO({ URL: this.baseUrl, AuthToken: this.authToken });
+        this.entity = new SMSReceivedApiRequestDTO(); // Reset state for next call
 
         const validation = this.validate(currentEntity);
         if (!validation.valid) {
@@ -75,6 +75,11 @@ export class SMSReceivedApi {
         }
         if (UsefulStuff.isEmpty(entity.TimePeriod) && UsefulStuff.isEmpty(entity.DateFrom) && UsefulStuff.isEmpty(entity.DateTo)) {
             return { valid: false, error: "Missing TimePeriod or DateFrom & DateTo" };
+        }
+        const hasDateFrom = !UsefulStuff.isEmpty(entity.DateFrom);
+        const hasDateTo = !UsefulStuff.isEmpty(entity.DateTo);
+        if (hasDateFrom !== hasDateTo) {
+            return { valid: false, error: "DateFrom and DateTo must be supplied together" };
         }
         if (!UsefulStuff.isNumber(entity.TimePeriod)) {
             return { valid: false, error: "TimePeriod must be a number - number of minutes" };

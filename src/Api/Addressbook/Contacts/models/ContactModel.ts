@@ -1,3 +1,5 @@
+import { Map } from "../../../../Functions/Mapper";
+
 export class ContactModel {
     ContactID?: string;
     ViewBy?: string;
@@ -36,7 +38,7 @@ export class ContactModel {
 
     constructor(data?: any) {
         if (data) {
-            Object.assign(this, data);
+            Map(this, data);
         }
     }
 }

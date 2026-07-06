@@ -1,4 +1,37 @@
 import { TNZAPI } from '../../src/index';
+// Compile-time proof that these types are part of the package's public root
+// export surface — ts-jest fails this file to compile if any name below is
+// missing from src/index.ts, so no runtime assertions are needed.
+import type {
+    ISMSArgs, IEmailArgs, IFaxArgs, ITTSArgs, IVoiceArgs, IWhatsAppArgs, IRCSArgs, IWorkflowArgs, IMessagingDestination,
+    IStatusArgs, ISMSReplyArgs, ISMSReceivedArgs,
+    IAbortArgs, IResubmitArgs, IRescheduleArgs, IPacingArgs,
+    IContactCreateArgs, IContactUpdateArgs, IContactDeleteArgs, IContactDetailArgs, IContactListArgs,
+    IGroupCreateArgs, IGroupUpdateArgs, IGroupDeleteArgs, IGroupDetailArgs, IGroupListArgs,
+    IContactGroupArgs, IContactGroupListArgs, IGroupContactArgs, IGroupContactListArgs,
+    IOptOutCreateArgs, IOptOutDetailArgs, IOptOutDeleteArgs, IOptOutListArgs,
+    MessagingApiSuccessResponseDTO, StatusApiResponseDTO, SMSReplyApiResponseDTO, SMSReceivedApiResponseDTO,
+    ActionApiResponseDTO, ContactApiResponseDTO, ContactListApiResponseDTO, GroupApiResponseDTO, GroupListApiResponseDTO,
+    ContactGroupApiResponseDTO, ContactGroupListApiResponseDTO, GroupContactApiResponseDTO, GroupContactListApiResponseDTO,
+    OptOutApiResponseDTO, OptOutListApiResponseDTO,
+} from '../../src/index';
+
+// Referencing every imported type here (rather than leaving the import
+// unused) is what actually proves each name is exported — an unused type
+// import wouldn't need src/index.ts to re-export anything to compile.
+type _AssertExported = [
+    ISMSArgs, IEmailArgs, IFaxArgs, ITTSArgs, IVoiceArgs, IWhatsAppArgs, IRCSArgs, IWorkflowArgs, IMessagingDestination,
+    IStatusArgs, ISMSReplyArgs, ISMSReceivedArgs,
+    IAbortArgs, IResubmitArgs, IRescheduleArgs, IPacingArgs,
+    IContactCreateArgs, IContactUpdateArgs, IContactDeleteArgs, IContactDetailArgs, IContactListArgs,
+    IGroupCreateArgs, IGroupUpdateArgs, IGroupDeleteArgs, IGroupDetailArgs, IGroupListArgs,
+    IContactGroupArgs, IContactGroupListArgs, IGroupContactArgs, IGroupContactListArgs,
+    IOptOutCreateArgs, IOptOutDetailArgs, IOptOutDeleteArgs, IOptOutListArgs,
+    MessagingApiSuccessResponseDTO, StatusApiResponseDTO, SMSReplyApiResponseDTO, SMSReceivedApiResponseDTO,
+    ActionApiResponseDTO, ContactApiResponseDTO, ContactListApiResponseDTO, GroupApiResponseDTO, GroupListApiResponseDTO,
+    ContactGroupApiResponseDTO, ContactGroupListApiResponseDTO, GroupContactApiResponseDTO, GroupContactListApiResponseDTO,
+    OptOutApiResponseDTO, OptOutListApiResponseDTO,
+];
 
 const VALID_TOKEN = 'unit-test-tnzapi-token-xyz';
 

@@ -1,6 +1,7 @@
 import { WhatsAppApi } from '../../../src/Api/Messaging/WhatsAppApi';
 import { IHttpClient } from '../../../src/Common/IHttpClient';
 import { WebhookCallbackFormat, WhatsAppFallbackMode } from '../../../src/Common/enums/MessagingEnums';
+import { ErrorResponseDTO } from '../../../src';
 
 const AUTH = 'test-auth-token';
 const BASE_URL = process.env.TNZ_API_URL ?? 'https://api.tnz.co.nz/api/v3.00';
@@ -23,15 +24,15 @@ describe('WhatsAppApi — validation', () => {
             Destinations: [{ ToNumber: '+64211111111' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/AuthToken/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/AuthToken/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
     it('rejects when both Message and TemplateID are missing', async () => {
         const { api, httpClient } = makeApi();
-        const result = await api.SendMessage({ Destinations: [{ ToNumber: '+64211111111' }] } as any);
+        const result = await api.SendMessage({ Destinations: [{ ToNumber: '+64211111111' }] });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Message|TemplateID/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Message|TemplateID/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -50,7 +51,7 @@ describe('WhatsAppApi — validation', () => {
         const { api, httpClient } = makeApi();
         const result = await api.SendMessage({ Message: 'Hello', Destinations: [] });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Destination/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Destination/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -58,11 +59,11 @@ describe('WhatsAppApi — validation', () => {
         const { api, httpClient } = makeApi();
         const result = await api.SendMessage({
             Message: 'Hello',
-            Mode: 'Live' as any,
+            Mode: 'Live' as unknown as 'Test',
             Destinations: [{ ToNumber: '+64211111111' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Mode/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Mode/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -88,7 +89,7 @@ describe('WhatsAppApi — validation', () => {
             Destinations: [{ ToNumber: '+64211111111' }],
             FallbackMode: WhatsAppFallbackMode.SMS,
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.FallbackMode).toBe('SMS');
     });
 
@@ -99,7 +100,7 @@ describe('WhatsAppApi — validation', () => {
             Message: 'Hello WhatsApp',
             Destinations: [{ ToNumber: '+64211111111' }],
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Message).toBe('Hello WhatsApp');
         expect(payload.MessageText).toBeUndefined();
     });
@@ -123,9 +124,9 @@ describe('WhatsAppApi — validation', () => {
             Message: 'Hello',
             WebhookCallbackURL: 'https://example.com/hook',
             Destinations: [{ ToNumber: '+64211111111' }],
-        } as any);
+        });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/WebhookCallbackFormat/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/WebhookCallbackFormat/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -137,7 +138,7 @@ describe('WhatsAppApi — validation', () => {
             Destinations: [{ ToNumber: '+64211111111' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/SendTime/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/SendTime/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -148,7 +149,7 @@ describe('WhatsAppApi — validation', () => {
             Destinations: [{ ToNumber: 'not-a-number' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/ToNumber/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/ToNumber/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -173,7 +174,7 @@ describe('WhatsAppApi — AddRecipient', () => {
         api.AddRecipient('+64211111111');
         api.AddRecipient({ ToNumber: '+64221111111' });
         await api.SendMessage({ Message: 'Hello' });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Destinations).toHaveLength(2);
     });
 
@@ -189,7 +190,7 @@ describe('WhatsAppApi — single-destination shorthand', () => {
             ToNumber: '+64211111111',
         });
         expect(result.Result).toBe('Success');
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Destinations).toHaveLength(1);
         expect(payload.Destinations[0].ToNumber).toBe('+64211111111');
     });
@@ -201,7 +202,7 @@ describe('WhatsAppApi — single-destination shorthand', () => {
             Message: 'Hi',
             ToNumber: '+64211111111,+64221111111',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Destinations).toHaveLength(2);
     });
 
@@ -213,7 +214,7 @@ describe('WhatsAppApi — single-destination shorthand', () => {
             GroupID: '4000000b-f002-4007-b00a-c00000000005',
             ContactID: '00000000-0000-0000-0000-000000000001',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Destinations).toHaveLength(2);
     });
 
@@ -225,7 +226,7 @@ describe('WhatsAppApi — single-destination shorthand', () => {
             ToNumber: '+64211111111',
             Destinations: [{ ToNumber: '+64221111111' }],
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Destinations).toHaveLength(2);
     });
 
@@ -236,7 +237,7 @@ describe('WhatsAppApi — single-destination shorthand', () => {
             ToNumber: 'not-a-number',
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/ToNumber/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/ToNumber/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -249,7 +250,7 @@ describe('WhatsAppApi — single-destination shorthand', () => {
             GroupID: '4000000b-f002-4007-b00a-c00000000005',
             ContactID: '00000000-0000-0000-0000-000000000001',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.ToNumber).toBeUndefined();
         expect(payload.GroupID).toBeUndefined();
         expect(payload.ContactID).toBeUndefined();

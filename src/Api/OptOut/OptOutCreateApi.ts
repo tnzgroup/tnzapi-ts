@@ -17,7 +17,7 @@ export class OptOutCreateApi {
     constructor(args: { URL: string; AuthToken?: string; httpClient?: IHttpClient }) {
         this.baseUrl = args.URL;
         this.authToken = args.AuthToken || "";
-        this.entity = new OptOutApiRequestDTO(args);
+        this.entity = new OptOutApiRequestDTO();
         this.httpClient = args.httpClient ?? new NodeHttpClient(this.authToken);
     }
 

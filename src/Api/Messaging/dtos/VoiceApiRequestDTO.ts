@@ -33,15 +33,15 @@ export class VoiceApiRequestDTO extends MessagingBaseRequestDTO {
             Map(this, data);
             // Map VoiceFiles entries to their named top-level fields (e.g. MessageToPeople).
             // Entries without a Name are ignored — there is no target field to assign.
-            if (Array.isArray((data as any).VoiceFiles)) {
-                for (const vf of (data as any).VoiceFiles as VoiceFileDTO[]) {
+            if (Array.isArray(data.VoiceFiles)) {
+                for (const vf of data.VoiceFiles as VoiceFileDTO[]) {
                     if (vf.Name && VOICE_FILE_FIELDS.has(vf.Name)) {
-                        (this as any)[vf.Name] = vf.Data;
+                        (this as Record<string, unknown>)[vf.Name] = vf.Data;
                     }
                 }
             }
             // VoiceFiles is not a spec field — do not serialize it
-            delete (this as any).VoiceFiles;
+            delete (this as Record<string, unknown>).VoiceFiles;
         }
     }
 }

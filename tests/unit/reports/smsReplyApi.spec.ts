@@ -1,7 +1,7 @@
 import { SMSReplyApi } from '../../../src/Api/Reports/SMSReplyApi';
 import { SMSReplyApiResponseDTO, SMSReplyRecipientDTO, SMSReplyRecipientSMSReplyDTO } from '../../../src/Api/Reports/dtos';
 import { IHttpClient } from '../../../src/Common/IHttpClient';
-import { ErrorResponseDTO } from '../../../src/Common/dtos';
+import { ErrorResponseDTO, ISMSReplyArgs } from '../../../src';
 
 const AUTH = 'test-auth-token';
 const BASE_URL = process.env.TNZ_API_URL ?? 'https://api.tnz.co.nz/api/v3.00';
@@ -25,25 +25,25 @@ describe('SMSReplyApi — validation', () => {
         const api = new SMSReplyApi({ URL: BASE_URL, AuthToken: '', httpClient });
         const result = await api.Poll({ MessageID: MSG_ID });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Auth/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Auth/i);
         expect(httpClient.get).not.toHaveBeenCalled();
     });
 
     it('rejects when MessageID is missing', async () => {
         const httpClient = makeMockHttpClient();
         const api = new SMSReplyApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
-        const result = await api.Poll({} as any);
+        const result = await api.Poll({} as unknown as ISMSReplyArgs);
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/MessageID/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/MessageID/i);
         expect(httpClient.get).not.toHaveBeenCalled();
     });
 
     it('rejects when RecordsPerPage is provided but is not a number', async () => {
         const httpClient = makeMockHttpClient();
         const api = new SMSReplyApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
-        const result = await api.Poll({ MessageID: MSG_ID, RecordsPerPage: 'abc' as any });
+        const result = await api.Poll({ MessageID: MSG_ID, RecordsPerPage: 'abc' as unknown as number });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/RecordsPerPage/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/RecordsPerPage/i);
         expect(httpClient.get).not.toHaveBeenCalled();
     });
 
@@ -52,7 +52,7 @@ describe('SMSReplyApi — validation', () => {
         const api = new SMSReplyApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
         const result = await api.Poll({ MessageID: MSG_ID, RecordsPerPage: 0 });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/RecordsPerPage/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/RecordsPerPage/i);
         expect(httpClient.get).not.toHaveBeenCalled();
     });
 
@@ -61,16 +61,16 @@ describe('SMSReplyApi — validation', () => {
         const api = new SMSReplyApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
         const result = await api.Poll({ MessageID: MSG_ID, RecordsPerPage: 1000 });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/RecordsPerPage/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/RecordsPerPage/i);
         expect(httpClient.get).not.toHaveBeenCalled();
     });
 
     it('rejects when Page is provided but not a number', async () => {
         const httpClient = makeMockHttpClient();
         const api = new SMSReplyApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
-        const result = await api.Poll({ MessageID: MSG_ID, Page: 'two' as any });
+        const result = await api.Poll({ MessageID: MSG_ID, Page: 'two' as unknown as number });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Page/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Page/i);
         expect(httpClient.get).not.toHaveBeenCalled();
     });
 
@@ -79,7 +79,7 @@ describe('SMSReplyApi — validation', () => {
         const api = new SMSReplyApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
         const result = await api.Poll({ MessageID: MSG_ID, Page: 0 });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Page/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Page/i);
         expect(httpClient.get).not.toHaveBeenCalled();
     });
 
@@ -91,6 +91,15 @@ describe('SMSReplyApi — validation', () => {
         expect(httpClient.get).toHaveBeenCalledTimes(1);
         const [url] = httpClient.get.mock.calls[0];
         expect(url).toContain(`/sms/${MSG_ID}`);
+    });
+
+    it('percent-encodes a MessageID containing reserved URL characters instead of splicing it into the path raw', async () => {
+        const httpClient = makeMockHttpClient();
+        httpClient.get.mockResolvedValueOnce({ Result: 'Success', Recipients: [] });
+        const api = new SMSReplyApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
+        await api.Poll({ MessageID: 'a/b?c#d' });
+        const [url] = httpClient.get.mock.calls[0];
+        expect(url).toContain(`/sms/${encodeURIComponent('a/b?c#d')}`);
     });
 
     it('GET URL contains correct recordsPerPage and page query params when provided', async () => {
@@ -127,7 +136,7 @@ describe('SMSReplyApi — validation', () => {
             ],
         });
         const api = new SMSReplyApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
-        const result = await api.Poll({ MessageID: MSG_ID }) as any;
+        const result = await api.Poll({ MessageID: MSG_ID }) as SMSReplyApiResponseDTO;
         expect(result.Result).toBe('Success');
         expect(result.MessageID).toBe(MSG_ID);
         expect(Array.isArray(result.Recipients)).toBe(true);

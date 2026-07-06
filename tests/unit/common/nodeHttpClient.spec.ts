@@ -161,7 +161,7 @@ describe('NodeHttpClient', () => {
 
             const result = await client.post(`${BASE_URL}/sms`, {});
 
-            expect((result as any).Result).toBe('Error');
+            expect(result.Result).toBe('Error');
         });
 
         it('rejects when HttpRequest throws synchronously', async () => {

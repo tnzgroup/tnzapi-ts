@@ -124,7 +124,92 @@ describe('HttpRequest', () => {
 
     beforeEach(() => {
         jest.resetAllMocks();
-        delete process.env['TNZ_IGNORE_SSL'];
+        delete process.env['TNZ_UNSAFE_IGNORE_SSL'];
+        delete process.env['TNZ_ALLOW_INSECURE_HTTP'];
+        delete process.env['NODE_ENV'];
+    });
+
+    it('rejects a plain HTTP URL by default without ever attaching the Authorization header', async () => {
+        const promise = new Promise<any>(resolve => {
+            HttpRequest('http://api.example.com/api/v3.00/sms', { Message: 'Hi' }, AUTH_TOKEN, 'POST', resolve);
+        });
+
+        const result = await promise;
+        expect(result.Result).toBe('Error');
+        expect(result.ErrorMessage[0]).toMatch(/HTTPS/);
+        expect(https.request).not.toHaveBeenCalled();
+        expect(http.request).not.toHaveBeenCalled();
+    });
+
+    it('allows a plain HTTP URL when TNZ_ALLOW_INSECURE_HTTP=true is set', async () => {
+        process.env['TNZ_ALLOW_INSECURE_HTTP'] = 'true';
+        const res = createMockResponse(200);
+        const req = createMockRequest();
+        (http.request as jest.Mock).mockImplementation(
+            (_opts: unknown, cb: (res: MockResponse) => void) => { cb(res); return req; }
+        );
+
+        const promise = new Promise<any>(resolve => {
+            HttpRequest('http://localhost:9090/api/v3.00/sms', { Message: 'Hi' }, AUTH_TOKEN, 'POST', resolve);
+        });
+
+        res.emit('data', '{"Result":"Success","MessageID":"msg-abc-123"}');
+        res.emit('end');
+
+        const result = await promise;
+        expect(result.Result).toBe('Success');
+        expect(http.request).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not attach an insecure TLS agent by default', async () => {
+        const res = createMockResponse(200);
+        const req = createMockRequest();
+        let capturedOptions: any;
+        (https.request as jest.Mock).mockImplementation(
+            (opts: unknown, cb: (res: MockResponse) => void) => { capturedOptions = opts; cb(res); return req; }
+        );
+
+        const promise = new Promise<any>(resolve => {
+            HttpRequest(TEST_URL, {}, AUTH_TOKEN, 'GET', resolve);
+        });
+        res.emit('data', '{"Result":"Success"}');
+        res.emit('end');
+        await promise;
+
+        expect(capturedOptions.agent).toBeUndefined();
+    });
+
+    it('attaches the insecure TLS agent when TNZ_UNSAFE_IGNORE_SSL=true (non-production)', async () => {
+        process.env['TNZ_UNSAFE_IGNORE_SSL'] = 'true';
+        const res = createMockResponse(200);
+        const req = createMockRequest();
+        let capturedOptions: any;
+        (https.request as jest.Mock).mockImplementation(
+            (opts: unknown, cb: (res: MockResponse) => void) => { capturedOptions = opts; cb(res); return req; }
+        );
+
+        const promise = new Promise<any>(resolve => {
+            HttpRequest(TEST_URL, {}, AUTH_TOKEN, 'GET', resolve);
+        });
+        res.emit('data', '{"Result":"Success"}');
+        res.emit('end');
+        await promise;
+
+        expect(capturedOptions.agent).toBeDefined();
+    });
+
+    it('refuses to run when TNZ_UNSAFE_IGNORE_SSL=true and NODE_ENV=production, without making a request', async () => {
+        process.env['TNZ_UNSAFE_IGNORE_SSL'] = 'true';
+        process.env['NODE_ENV'] = 'production';
+
+        const promise = new Promise<any>(resolve => {
+            HttpRequest(TEST_URL, {}, AUTH_TOKEN, 'GET', resolve);
+        });
+
+        const result = await promise;
+        expect(result.Result).toBe('Error');
+        expect(result.ErrorMessage[0]).toMatch(/TNZ_UNSAFE_IGNORE_SSL/);
+        expect(https.request).not.toHaveBeenCalled();
     });
 
     it('resolves with parsed JSON body and HttpStatusCode for a 2xx response', async () => {
@@ -254,7 +339,7 @@ describe('HttpRequest', () => {
         res.emit('end');
 
         await promise;
-        expect((capturedOptions as any).headers['Authorization']).toBe('Bearer my-secret-token');
+        expect(capturedOptions.headers['Authorization']).toBe('Bearer my-secret-token');
     });
 
     it('does not include Content-Length or call req.write for GET requests', async () => {
@@ -277,7 +362,7 @@ describe('HttpRequest', () => {
         res.emit('end');
 
         await promise;
-        expect((capturedOptions as any).headers['Content-Length']).toBeUndefined();
+        expect(capturedOptions.headers['Content-Length']).toBeUndefined();
         expect(req.write).not.toHaveBeenCalled();
     });
 
@@ -291,7 +376,8 @@ describe('HttpRequestAsync', () => {
 
     beforeEach(() => {
         jest.resetAllMocks();
-        delete process.env['TNZ_IGNORE_SSL'];
+        delete process.env['TNZ_UNSAFE_IGNORE_SSL'];
+        delete process.env['NODE_ENV'];
     });
 
     it('resolves with the same data that HttpRequest would pass to its callback', async () => {

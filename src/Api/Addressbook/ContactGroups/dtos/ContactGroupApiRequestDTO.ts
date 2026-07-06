@@ -15,8 +15,8 @@ export class ContactGroupApiRequestDTO extends ContactGroupBaseRequestDTO {
     }
 
     toJSON() {
-        const copy = { ...this };
-        delete (copy as any).ContactID;
+        const copy = { ...this } as Record<string, unknown>;
+        delete copy.ContactID;
         return copy;
     }
 }

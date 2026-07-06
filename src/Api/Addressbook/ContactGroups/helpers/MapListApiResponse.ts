@@ -13,8 +13,8 @@ export const MapListApiResponse = (responseData: any): ContactGroupListApiRespon
                 responseData.Contact = new ContactModel(responseData.Contact);
             }
             if (!UsefulStuff.isEmpty(responseData.Groups)) {
-                let groups: GroupModel[] = [];
-                for (let group of responseData.Groups) {
+                const groups: GroupModel[] = [];
+                for (const group of responseData.Groups) {
                     groups.push(new GroupModel(group));
                 }
                 responseData.Groups = groups;

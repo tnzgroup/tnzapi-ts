@@ -4,6 +4,7 @@ import { ContactGroupDetailApi } from '../../../src/Api/Addressbook/ContactGroup
 import { ContactGroupDeleteApi } from '../../../src/Api/Addressbook/ContactGroups/ContactGroupDeleteApi';
 import { ContactGroupApiResponseDTO, ContactGroupListApiResponseDTO } from '../../../src/Api/Addressbook/ContactGroups/dtos';
 import { ErrorResponseDTO } from '../../../src/Common/dtos';
+import { expectNoLeakedConstructorArgs } from '../testHelpers';
 
 // HttpRequestAsync is called directly (no IHttpClient injection) — mock the module.
 jest.mock('../../../src/Functions', () => {
@@ -38,7 +39,7 @@ describe('ContactGroupListApi — validation', () => {
         const api = new ContactGroupListApi({ URL: BASE_URL, AuthToken: '' });
         const result = await api.Run({ ContactID: CONTACT_ID });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/AuthToken/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/AuthToken/i);
         expect(mockHttpRequest).not.toHaveBeenCalled();
     });
 
@@ -46,15 +47,15 @@ describe('ContactGroupListApi — validation', () => {
         const api = new ContactGroupListApi({ URL: BASE_URL, AuthToken: AUTH });
         const result = await api.Run({});
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/ContactID/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/ContactID/i);
         expect(mockHttpRequest).not.toHaveBeenCalled();
     });
 
     it('rejects when RecordsPerPage is provided but not a number', async () => {
         const api = new ContactGroupListApi({ URL: BASE_URL, AuthToken: AUTH });
-        const result = await api.Run({ ContactID: CONTACT_ID, RecordsPerPage: 'ten' as any });
+        const result = await api.Run({ ContactID: CONTACT_ID, RecordsPerPage: 'ten' as unknown as number });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/must be a number/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/must be a number/i);
         expect(mockHttpRequest).not.toHaveBeenCalled();
     });
 
@@ -98,7 +99,7 @@ describe('ContactGroupCreateApi — validation', () => {
         const api = new ContactGroupCreateApi({ URL: BASE_URL, AuthToken: '' });
         const result = await api.Run({ ContactID: CONTACT_ID, GroupID: GROUP_ID });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/AuthToken/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/AuthToken/i);
         expect(mockHttpRequest).not.toHaveBeenCalled();
     });
 
@@ -106,7 +107,7 @@ describe('ContactGroupCreateApi — validation', () => {
         const api = new ContactGroupCreateApi({ URL: BASE_URL, AuthToken: AUTH });
         const result = await api.Run({ GroupID: GROUP_ID });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/ContactID/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/ContactID/i);
         expect(mockHttpRequest).not.toHaveBeenCalled();
     });
 
@@ -114,7 +115,7 @@ describe('ContactGroupCreateApi — validation', () => {
         const api = new ContactGroupCreateApi({ URL: BASE_URL, AuthToken: AUTH });
         const result = await api.Run({ ContactID: CONTACT_ID });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/GroupID/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/GroupID/i);
         expect(mockHttpRequest).not.toHaveBeenCalled();
     });
 
@@ -161,6 +162,25 @@ describe('ContactGroupCreateApi — validation', () => {
         expect(result).toBeInstanceOf(ContactGroupApiResponseDTO);
     });
 
+    it('never leaks the constructor-only URL/AuthToken into the very first Run payload', async () => {
+        mockHttpRequest.mockResolvedValueOnce({ Result: 'Success' });
+        const api = new ContactGroupCreateApi({ URL: BASE_URL, AuthToken: 'super-secret-token' });
+        await api.Run({ ContactID: CONTACT_ID, GroupID: GROUP_ID });
+        expectNoLeakedConstructorArgs(mockHttpRequest.mock.calls[0][1]);
+    });
+
+    it('never leaks the constructor-only URL/AuthToken into a SECOND Run payload either', async () => {
+        // Regression test: the per-call reset used to rebuild the entity as
+        // `new ContactGroupApiRequestDTO({ URL: this.url, AuthToken: this.authToken })`
+        // instead of a bare `new ContactGroupApiRequestDTO()` — so the token was clean
+        // on the first call but leaked into the request body from the second call on.
+        mockHttpRequest.mockResolvedValue({ Result: 'Success' });
+        const api = new ContactGroupCreateApi({ URL: BASE_URL, AuthToken: 'super-secret-token' });
+        await api.Run({ ContactID: CONTACT_ID, GroupID: GROUP_ID });
+        await api.Run({ ContactID: CONTACT_ID, GroupID: GROUP_ID });
+        expectNoLeakedConstructorArgs(mockHttpRequest.mock.calls[1][1]);
+    });
+
 });
 
 // ─────────────────────────── ContactGroupDetailApi ────────────────────────────
@@ -171,7 +191,7 @@ describe('ContactGroupDetailApi — validation', () => {
         const api = new ContactGroupDetailApi({ URL: BASE_URL, AuthToken: '' });
         const result = await api.Run({ ContactID: CONTACT_ID, GroupID: GROUP_ID });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/AuthToken/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/AuthToken/i);
         expect(mockHttpRequest).not.toHaveBeenCalled();
     });
 
@@ -179,7 +199,7 @@ describe('ContactGroupDetailApi — validation', () => {
         const api = new ContactGroupDetailApi({ URL: BASE_URL, AuthToken: AUTH });
         const result = await api.Run({ GroupID: GROUP_ID });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/ContactID/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/ContactID/i);
         expect(mockHttpRequest).not.toHaveBeenCalled();
     });
 
@@ -187,7 +207,7 @@ describe('ContactGroupDetailApi — validation', () => {
         const api = new ContactGroupDetailApi({ URL: BASE_URL, AuthToken: AUTH });
         const result = await api.Run({ ContactID: CONTACT_ID });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/GroupID/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/GroupID/i);
         expect(mockHttpRequest).not.toHaveBeenCalled();
     });
 
@@ -227,6 +247,14 @@ describe('ContactGroupDetailApi — validation', () => {
         expect(result.Result).toBe('Success');
     });
 
+    it('percent-encodes ContactID and GroupCode containing reserved URL characters instead of splicing them into the path raw', async () => {
+        mockHttpRequest.mockResolvedValueOnce({ Result: 'Success', Contact: {}, Group: {} });
+        const api = new ContactGroupDetailApi({ URL: BASE_URL, AuthToken: AUTH });
+        await api.Run({ ContactID: 'a/b?c', GroupCode: 'd#e f' });
+        const [url] = mockHttpRequest.mock.calls[0];
+        expect(url).toBe(`${BASE_URL}/${encodeURIComponent('a/b?c')}/Group/${encodeURIComponent('d#e f')}`);
+    });
+
     it('treats HttpStatusCode 200 as success even when the server omits Result (real server behavior)', async () => {
         mockHttpRequest.mockResolvedValueOnce({ HttpStatusCode: 200, Contact: { ContactID: TEST_CONTACT_UUID }, Group: { GroupID: TEST_GROUP_UUID } });
         const api = new ContactGroupDetailApi({ URL: BASE_URL, AuthToken: AUTH });
@@ -246,7 +274,7 @@ describe('ContactGroupDeleteApi — validation', () => {
         const api = new ContactGroupDeleteApi({ URL: BASE_URL, AuthToken: '' });
         const result = await api.Run({ ContactID: CONTACT_ID, GroupID: GROUP_ID });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/AuthToken/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/AuthToken/i);
         expect(mockHttpRequest).not.toHaveBeenCalled();
     });
 
@@ -254,7 +282,7 @@ describe('ContactGroupDeleteApi — validation', () => {
         const api = new ContactGroupDeleteApi({ URL: BASE_URL, AuthToken: AUTH });
         const result = await api.Run({ GroupID: GROUP_ID });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/ContactID/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/ContactID/i);
         expect(mockHttpRequest).not.toHaveBeenCalled();
     });
 
@@ -262,7 +290,7 @@ describe('ContactGroupDeleteApi — validation', () => {
         const api = new ContactGroupDeleteApi({ URL: BASE_URL, AuthToken: AUTH });
         const result = await api.Run({ ContactID: CONTACT_ID });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/GroupID/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/GroupID/i);
         expect(mockHttpRequest).not.toHaveBeenCalled();
     });
 

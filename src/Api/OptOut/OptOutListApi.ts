@@ -17,7 +17,7 @@ export class OptOutListApi {
     constructor(args: { URL: string; AuthToken?: string; httpClient?: IHttpClient }) {
         this.baseUrl = args.URL;
         this.authToken = args.AuthToken || "";
-        this.entity = new OptOutListApiRequestDTO(args);
+        this.entity = new OptOutListApiRequestDTO();
         this.httpClient = args.httpClient ?? new NodeHttpClient(this.authToken);
     }
 
@@ -63,7 +63,10 @@ export class OptOutListApi {
         return new ErrorResponseDTO(responseData);
     }
 
-    private validate(entity: OptOutListApiRequestDTO): ValidationResult {
+    // `_entity` is unused — OptOut List has no request fields to validate beyond
+    // AuthToken, but the parameter is kept for signature consistency with every
+    // sibling `validate(entity)` method.
+    private validate(_entity: OptOutListApiRequestDTO): ValidationResult {
         if (UsefulStuff.isEmpty(this.authToken)) {
             return { valid: false, error: "Missing AuthToken" };
         }

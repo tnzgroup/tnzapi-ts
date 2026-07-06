@@ -17,7 +17,7 @@ export class OptOutDetailApi {
     constructor(args: { URL: string; AuthToken?: string; httpClient?: IHttpClient }) {
         this.baseUrl = args.URL;
         this.authToken = args.AuthToken || "";
-        this.entity = new OptOutApiRequestDTO(args);
+        this.entity = new OptOutApiRequestDTO();
         this.httpClient = args.httpClient ?? new NodeHttpClient(this.authToken);
     }
 
@@ -37,7 +37,7 @@ export class OptOutDetailApi {
             });
         }
 
-        const url = `${this.baseUrl}/optout/${encodeURIComponent(currentEntity.OptOutID!)}`;
+        const url = `${this.baseUrl}/optout/${UsefulStuff.encodePathSegment(currentEntity.OptOutID)}`;
         const responseData = await this.httpClient.get(url);
 
         if (responseData.HttpStatusCode === 200 || isSuccessResult(responseData.Result)) {

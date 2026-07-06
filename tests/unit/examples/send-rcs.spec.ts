@@ -4,6 +4,8 @@
 // test mocks the transport layer (HttpRequest) instead of the real network,
 // then verifies the script runs to completion without throwing.
 
+import { isolateAndRequire } from './isolateAndRequire';
+
 jest.mock('../../../src/Functions/HttpRequest', () => ({
     HttpRequest: jest.fn((_url, _payload, _authToken, _method, callback) => {
         callback({ Result: 'Success', MessageID: 'test-msg-id', JobNum: '1', Status: 'Queued' });
@@ -35,11 +37,11 @@ describe('examples/messaging/send-rcs.ts', () => {
         // gives it a fresh registry (and a fresh mock, from the jest.mock factory
         // above) so the script actually re-executes instead of returning cached
         // exports from a previous test/watch-mode run.
-        let mockHttpRequest!: jest.Mock;
-        jest.isolateModules(() => {
-            mockHttpRequest = require('../../../src/Functions/HttpRequest').HttpRequest;
-            require('../../../examples/messaging/send-rcs');
-        });
+        const [httpRequestModule] = isolateAndRequire([
+            '../../../src/Functions/HttpRequest',
+            '../../../examples/messaging/send-rcs',
+        ] as const);
+        const mockHttpRequest = (httpRequestModule as { HttpRequest: jest.Mock }).HttpRequest;
 
         // Flush the microtask queue so the script's chained `await` calls resolve
         // (the mocked HttpRequest calls back synchronously, so one macrotask tick

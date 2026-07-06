@@ -2,8 +2,6 @@
 import { TNZAPI } from '../src';
 
 const authToken = process.env.TNZ_AUTH_TOKEN;
-const testContactID = process.env.TNZ_TEST_CONTACT_ID;
-const testGroupID = process.env.TNZ_TEST_GROUP_ID;
 
 describe('Addressbook API', () => {
 

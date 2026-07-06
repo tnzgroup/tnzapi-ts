@@ -74,7 +74,9 @@ describe('FileHandler', () => {
             error.code = 'ENOENT';
             mockedReadFile.mockImplementation(
                 (_filePath: string, callback: (err: NodeJS.ErrnoException | null, data: Buffer) => void) => {
-                    callback(error, null as any);
+                    // Node's real fs.readFile never provides meaningful `data` on error;
+                    // an empty Buffer satisfies the callback's required (non-null) type.
+                    callback(error, Buffer.alloc(0));
                 }
             );
             await expect(FileHandler.getFileData('/missing.txt')).rejects.toThrow('ENOENT');

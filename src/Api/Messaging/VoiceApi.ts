@@ -13,7 +13,7 @@ export class VoiceApi extends BaseMessagingApi<VoiceModel> {
 
     constructor(args: { URL: string; AuthToken?: string; httpClient?: IHttpClient }) {
         super(args.URL, args.AuthToken || "", args.httpClient);
-        this.entity = new VoiceModel(args);
+        this.entity = new VoiceModel();
     }
 
     public async SendMessage(args?: IVoiceArgs): Promise<MessagingApiSuccessResponseDTO | ErrorResponseDTO> {
@@ -89,7 +89,7 @@ export class VoiceApi extends BaseMessagingApi<VoiceModel> {
     }
 
     public AddVoiceFile(field: string, file: string): this {
-        if (FileHandler.fileExists(file)) {
+        if (this.trackIfMissing(file)) {
             this.entity.VoiceFiles.push({
                 "Name": field,
                 "File": file,

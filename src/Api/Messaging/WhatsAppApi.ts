@@ -13,7 +13,7 @@ export class WhatsAppApi extends BaseMessagingApi<WhatsAppModel> {
 
     constructor(args: { URL: string; AuthToken?: string; httpClient?: IHttpClient }) {
         super(args.URL, args.AuthToken || "", args.httpClient);
-        this.entity = new WhatsAppModel(args);
+        this.entity = new WhatsAppModel();
     }
 
     public async SendMessage(args?: IWhatsAppArgs): Promise<MessagingApiSuccessResponseDTO | ErrorResponseDTO> {

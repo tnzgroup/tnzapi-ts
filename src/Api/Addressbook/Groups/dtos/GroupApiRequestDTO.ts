@@ -13,8 +13,8 @@ export class GroupApiRequestDTO extends CommonApiRequestDTO {
     }
 
     toJSON() {
-        const copy = { ...this };
-        delete (copy as any).GroupCode;
+        const copy = { ...this } as Record<string, unknown>;
+        delete copy.GroupCode;
         return copy;
     }
 }

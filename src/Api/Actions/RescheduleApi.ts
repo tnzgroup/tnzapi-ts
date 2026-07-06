@@ -16,7 +16,7 @@ export class RescheduleApi {
     constructor(args: { URL: string; AuthToken?: string; httpClient?: IHttpClient }) {
         this.baseUrl = args.URL;
         this.authToken = args.AuthToken || "";
-        this.entity = new RescheduleApiRequestDTO(args);
+        this.entity = new RescheduleApiRequestDTO();
         this.httpClient = args.httpClient ?? new NodeHttpClient(this.authToken);
     }
 
@@ -26,7 +26,7 @@ export class RescheduleApi {
         }
 
         const currentEntity = this.entity;
-        this.entity = new RescheduleApiRequestDTO({ URL: this.baseUrl, AuthToken: this.authToken });
+        this.entity = new RescheduleApiRequestDTO(); // Reset state for next call
 
         const validation = this.validate(currentEntity);
         if (!validation.valid) {
@@ -36,7 +36,7 @@ export class RescheduleApi {
             });
         }
 
-        const url = `${this.baseUrl}/${currentEntity.Channel}/${currentEntity.MessageID}/reschedule`;
+        const url = `${this.baseUrl}/${UsefulStuff.encodePathSegment(currentEntity.Channel)}/${UsefulStuff.encodePathSegment(currentEntity.MessageID)}/reschedule`;
 
         const responseData = await this.httpClient.patch(url, { SendTime: currentEntity.SendTime });
         return helpers.MapApiResponse(responseData);

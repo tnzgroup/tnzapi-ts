@@ -33,15 +33,18 @@ describe('OptOut Integration', () => {
     // OptOutID is a UUID, not a phone number/email — fetch a real one from List
     // rather than relying on a placeholder fixture that would 404.
     const listResult = await client.OptOut.List({ RecordsPerPage: 1, Page: 1 });
-    const records = !(listResult instanceof ErrorResponseDTO)
-      ? (listResult.OptOuts.length ? listResult.OptOuts : ((listResult as any).Data ?? []))
-      : [];
+    // OptOutListApi.ts already normalizes the legacy "Data" server field into
+    // OptOuts internally (see .docs/SERVER-QUIRKS.md), so no fallback is needed here.
+    const records = !(listResult instanceof ErrorResponseDTO) ? listResult.OptOuts : [];
     if (records.length === 0) {
       console.warn('No opt-out records available to test Detail against — skipping assertion.');
       return;
     }
 
     const optOutId = records[0].ID;
+    if (!optOutId) {
+      throw new Error('Opt-out record returned by List has no ID — cannot test Detail.');
+    }
     const result = await client.OptOut.Detail({ OptOutID: optOutId });
     console.log('Response:', JSON.stringify(result, null, '  '));
     expect(result).toMatchObject({ Result: expect.any(String) });

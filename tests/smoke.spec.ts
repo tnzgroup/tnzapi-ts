@@ -11,7 +11,7 @@
  *   npx jest --selectProjects integration tests/smoke.spec.ts
  */
 
-import { TNZAPI } from '../src';
+import { TNZAPI, MessagingApiSuccessResponseDTO, StatusApiResponseDTO } from '../src';
 
 const authToken = process.env.TNZ_AUTH_TOKEN;
 const testMobile = process.env.TNZ_TEST_MOBILE ?? '+64211111111';
@@ -21,7 +21,7 @@ const describeOrSkip = smokeEnabled ? describe : describe.skip;
 
 describeOrSkip('Smoke test: Send → Poll Status', () => {
     let client: TNZAPI;
-    let sentMessageID: string;
+    let sentMessageID: string | undefined;
 
     beforeAll(() => {
         if (!authToken) {
@@ -35,7 +35,7 @@ describeOrSkip('Smoke test: Send → Poll Status', () => {
             Reference: 'smoke-test',
             Message: 'TNZ API smoke test — please ignore.',
             Destinations: [{ ToNumber: testMobile }],
-        }) as any;
+        }) as MessagingApiSuccessResponseDTO;
 
         console.log('Send response:', JSON.stringify(data, null, 2));
 
@@ -58,7 +58,7 @@ describeOrSkip('Smoke test: Send → Poll Status', () => {
         const data = await client.Reports.Status.Poll({
             MessageID: sentMessageID,
             Channel: 'sms',
-        }) as any;
+        }) as StatusApiResponseDTO;
 
         console.log('Status response:', JSON.stringify(data, null, 2));
 

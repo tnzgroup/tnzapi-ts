@@ -13,7 +13,7 @@ export class ContactGroupCreateApi {
     constructor(args: { URL: string; AuthToken?: string }) {
         this.url = args.URL;
         this.authToken = args.AuthToken || "";
-        this.entity = new ContactGroupApiRequestDTO(args);
+        this.entity = new ContactGroupApiRequestDTO();
     }
 
     public async Run(args?: IContactGroupArgs): Promise<ContactGroupApiResponseDTO | ErrorResponseDTO> {
@@ -22,7 +22,7 @@ export class ContactGroupCreateApi {
         }
 
         const currentEntity = this.entity;
-        this.entity = new ContactGroupApiRequestDTO({ URL: this.url, AuthToken: this.authToken });
+        this.entity = new ContactGroupApiRequestDTO(); // Reset state for next call
 
         const validation = this.validate(currentEntity);
         if (!validation.valid) {
@@ -32,7 +32,7 @@ export class ContactGroupCreateApi {
             });
         }
 
-        const url = `${this.url}/${currentEntity.ContactID}/group`;
+        const url = `${this.url}/${UsefulStuff.encodePathSegment(currentEntity.ContactID)}/group`;
 
         const responseData = await HttpRequestAsync(url, currentEntity, this.authToken, "PATCH");
         return helpers.MapApiResponse(responseData);

@@ -128,3 +128,16 @@ export const httpBuildQuery = (data: any): string => {
         return `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`;
     }).join('&');
 }
+
+// Encodes a single dynamic URL path segment. Callers pass a value already
+// confirmed non-empty by validate() — the non-null assertion lives here once
+// instead of being repeated at every call site.
+export const encodePathSegment = (value?: string): string => {
+    return encodeURIComponent(value!);
+}
+
+// Encodes whichever of a GroupID/GroupCode pair is present, as a URL path segment.
+// Callers pass values already confirmed not both empty by validate().
+export const encodeGroupSegment = (groupId?: string, groupCode?: string): string => {
+    return encodeURIComponent((groupId ?? groupCode)!);
+}

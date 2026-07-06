@@ -11,6 +11,11 @@ import { IAddRecipientArg } from "./helpers/AddRecipient";
 export abstract class BaseMessagingApi<T extends IMessagingModel> {
     protected abstract entity: T;
     protected abstract readonly apiEndpoint: string;
+    // File paths passed to AddAttachment()/AddVoiceFile() that failed FileHandler.fileExists() —
+    // tracked here (not on `entity`) because MessagingBaseRequestDTO subclasses Map() every own
+    // property of `entity` onto the outbound DTO regardless of whether the DTO declares it, so a
+    // tracking field on the model would leak into the live API request body.
+    protected missingAttachments: string[] = [];
     constructor(
         protected readonly baseUrl: string,
         protected readonly authToken: string,
@@ -52,7 +57,9 @@ export abstract class BaseMessagingApi<T extends IMessagingModel> {
         }
 
         const currentEntity = this.entity;
+        const missingAttachments = this.missingAttachments;
         this.entity = this.createEntity(); // Reset state for next call
+        this.missingAttachments = [];
 
         this.resolveSingleDestinations(currentEntity);
 
@@ -61,6 +68,13 @@ export abstract class BaseMessagingApi<T extends IMessagingModel> {
             return helpers.MapApiResponse({
                 "Result": "Error",
                 "ErrorMessage": [validation.error || "An error occurred while processing."]
+            });
+        }
+
+        if (missingAttachments.length > 0) {
+            return helpers.MapApiResponse({
+                "Result": "Error",
+                "ErrorMessage": missingAttachments.map(path => `Attachment file not found: ${path}`)
             });
         }
 
@@ -139,9 +153,23 @@ export abstract class BaseMessagingApi<T extends IMessagingModel> {
     }
 
     public AddAttachment(attachment: string): this {
-        if (FileHandler.fileExists(attachment)) {
+        if (this.trackIfMissing(attachment)) {
             this.entity.Attachments.push(attachment);
         }
         return this;
+    }
+
+    /**
+     * Checks a file path via FileHandler.fileExists(); if it doesn't exist, records it in
+     * missingAttachments (surfaced as an error from the next SendMessage() call) instead of
+     * silently dropping it. Returns whether the path exists, for the caller to decide what
+     * to push onto `entity`.
+     */
+    protected trackIfMissing(path: string): boolean {
+        if (FileHandler.fileExists(path)) {
+            return true;
+        }
+        this.missingAttachments.push(path);
+        return false;
     }
 }

@@ -17,7 +17,7 @@ export class ContactDeleteApi {
     constructor(args: { URL: string; AuthToken?: string; httpClient?: IHttpClient }) {
         this.url = args.URL;
         this.authToken = args.AuthToken || "";
-        this.entity = new ContactApiRequestDTO(args);
+        this.entity = new ContactApiRequestDTO();
         this.httpClient = args.httpClient ?? new NodeHttpClient(this.authToken);
     }
 
@@ -38,7 +38,7 @@ export class ContactDeleteApi {
         }
 
         const contact = new ContactModel(currentEntity);
-        const url = `${this.url}/${contact.ContactID}`;
+        const url = `${this.url}/${UsefulStuff.encodePathSegment(contact.ContactID)}`;
 
         const responseData = await this.httpClient.delete(url);
         return helpers.MapApiResponse(responseData);

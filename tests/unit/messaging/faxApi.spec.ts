@@ -2,6 +2,7 @@ import { FaxApi } from '../../../src/Api/Messaging/FaxApi';
 import { IHttpClient } from '../../../src/Common/IHttpClient';
 import { WebhookCallbackFormat, FaxResolution } from '../../../src/Common/enums/MessagingEnums';
 import { FileHandler } from '../../../src/Functions';
+import { ErrorResponseDTO } from '../../../src';
 
 const AUTH = 'test-auth-token';
 const BASE_URL = process.env.TNZ_API_URL ?? 'https://api.tnz.co.nz/api/v3.00';
@@ -24,15 +25,15 @@ describe('FaxApi — validation', () => {
             Destinations: [{ ToNumber: '+6492345678' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/AuthToken/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/AuthToken/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
     it('rejects when no TemplateID and no Attachments provided', async () => {
         const { api, httpClient } = makeApi();
-        const result = await api.SendMessage({ Destinations: [{ ToNumber: '+6492345678' }] } as any);
+        const result = await api.SendMessage({ Destinations: [{ ToNumber: '+6492345678' }] });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/TemplateID|Attachment/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/TemplateID|Attachment/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -43,7 +44,7 @@ describe('FaxApi — validation', () => {
             Destinations: [],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Destination/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Destination/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -51,11 +52,11 @@ describe('FaxApi — validation', () => {
         const { api, httpClient } = makeApi();
         const result = await api.SendMessage({
             TemplateID: '11111111-2222-3333-4444-555555555555',
-            Mode: 'Live' as any,
+            Mode: 'Live' as unknown as 'Test',
             Destinations: [{ ToNumber: '+6492345678' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Mode/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Mode/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -81,7 +82,7 @@ describe('FaxApi — validation', () => {
             Destinations: [{ ToNumber: '+6492345678' }],
             Resolution: FaxResolution.High,
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Resolution).toBe('High');
     });
 
@@ -94,7 +95,7 @@ describe('FaxApi — validation', () => {
             RetryAttempts: 3,
             RetryPeriod: 5,
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.RetryAttempts).toBe(3);
         expect(payload.RetryPeriod).toBe(5);
     });
@@ -109,7 +110,7 @@ describe('FaxApi — validation', () => {
             WatermarkFirstPage: 'Cover.ps',
             WatermarkAllPages: 'Stamp.docx',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.WatermarkFolder).toBe('Folder01');
         expect(payload.WatermarkFirstPage).toBe('Cover.ps');
         expect(payload.WatermarkAllPages).toBe('Stamp.docx');
@@ -136,7 +137,7 @@ describe('FaxApi — validation', () => {
             Destinations: [{ ToNumber: '+6492345678' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/SendTime/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/SendTime/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -146,9 +147,9 @@ describe('FaxApi — validation', () => {
             TemplateID: '11111111-2222-3333-4444-555555555555',
             WebhookCallbackURL: 'https://example.com/hook',
             Destinations: [{ ToNumber: '+6492345678' }],
-        } as any);
+        });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/WebhookCallbackFormat/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/WebhookCallbackFormat/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -159,7 +160,7 @@ describe('FaxApi — validation', () => {
             Destinations: [{ ToNumber: 'not-a-number' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Invalid Recipient/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Invalid Recipient/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -171,7 +172,7 @@ describe('FaxApi — validation', () => {
             Attachments: ['/non-existent/file.pdf'],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/attachment/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/attachment/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -183,18 +184,52 @@ describe('FaxApi — AddAttachment', () => {
         jest.restoreAllMocks();
     });
 
-    it('silently ignores a non-existent file path and returns the api instance', async () => {
+    it('returns the api instance immediately, then fails SendMessage for a non-existent file path', async () => {
         const { api, httpClient } = makeApi();
         jest.spyOn(FileHandler, 'fileExists').mockReturnValueOnce(false);
-        httpClient.post.mockResolvedValueOnce({ Result: 'Success', MessageID: 'fax-at1' });
         const returned = api.AddAttachment('/non-existent/file.pdf');
         expect(returned).toBe(api);
         const result = await api.SendMessage({
             TemplateID: '11111111-2222-3333-4444-555555555555',
             Destinations: [{ ToNumber: '+6492345678' }],
         });
-        // File was not added (fileExists returned false) so no attachment processing error
-        expect(result.Result).toBe('Success');
+        expect(result.Result).toBe('Error');
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toBe('Attachment file not found: /non-existent/file.pdf');
+        expect(httpClient.post).not.toHaveBeenCalled();
+    });
+
+    it('reports the missing AuthToken instead of masking it behind a missing-attachment error', async () => {
+        // Regression test: the missing-attachment check used to run before validate(),
+        // so when both AuthToken and an attachment path were invalid, the caller was
+        // told the file was missing instead of being told auth was misconfigured.
+        const { api, httpClient } = makeApi('');
+        jest.spyOn(FileHandler, 'fileExists').mockReturnValueOnce(false);
+        api.AddAttachment('/non-existent/file.pdf');
+        const result = await api.SendMessage({
+            TemplateID: '11111111-2222-3333-4444-555555555555',
+            Destinations: [{ ToNumber: '+6492345678' }],
+        });
+        expect(result.Result).toBe('Error');
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/AuthToken/i);
+        expect(httpClient.post).not.toHaveBeenCalled();
+    });
+
+    it('resets missing-attachment state so a later SendMessage call is unaffected', async () => {
+        const { api, httpClient } = makeApi();
+        jest.spyOn(FileHandler, 'fileExists').mockReturnValueOnce(false);
+        httpClient.post.mockResolvedValueOnce({ Result: 'Success', MessageID: 'fax-at3' });
+        api.AddAttachment('/non-existent/file.pdf');
+        const failed = await api.SendMessage({
+            TemplateID: '11111111-2222-3333-4444-555555555555',
+            Destinations: [{ ToNumber: '+6492345678' }],
+        });
+        expect(failed.Result).toBe('Error');
+
+        const succeeded = await api.SendMessage({
+            TemplateID: '11111111-2222-3333-4444-555555555555',
+            Destinations: [{ ToNumber: '+6492345678' }],
+        });
+        expect(succeeded.Result).toBe('Success');
         expect(httpClient.post).toHaveBeenCalledTimes(1);
     });
 
@@ -211,7 +246,7 @@ describe('FaxApi — AddAttachment', () => {
         });
         expect(result.Result).toBe('Success');
         expect(httpClient.post).toHaveBeenCalledTimes(1);
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Files).toBeDefined();
         expect(payload.Files[0].Name).toBe('document.pdf');
         expect(payload.Files[0].Data).toBe('ZmFrZWRhdGE=');
@@ -231,7 +266,7 @@ describe('FaxApi — single-destination shorthand', () => {
             ToNumber: '+6492345678',
         });
         expect(result.Result).toBe('Success');
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Destinations).toHaveLength(1);
         expect(payload.Destinations[0].ToNumber).toBe('+6492345678');
     });
@@ -243,7 +278,7 @@ describe('FaxApi — single-destination shorthand', () => {
             TemplateID: TEMPLATE_ID,
             ToNumber: '+6492345678,+6493456789',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Destinations).toHaveLength(2);
     });
 
@@ -255,7 +290,7 @@ describe('FaxApi — single-destination shorthand', () => {
             GroupID: '4000000b-f002-4007-b00a-c00000000005',
             ContactID: '00000000-0000-0000-0000-000000000001',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Destinations).toHaveLength(2);
     });
 
@@ -267,7 +302,7 @@ describe('FaxApi — single-destination shorthand', () => {
             ToNumber: '+6492345678',
             Destinations: [{ ToNumber: '+6493456789' }],
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Destinations).toHaveLength(2);
     });
 
@@ -278,7 +313,7 @@ describe('FaxApi — single-destination shorthand', () => {
             ToNumber: 'not-a-number',
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/phone number/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/phone number/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -291,7 +326,7 @@ describe('FaxApi — single-destination shorthand', () => {
             GroupID: '4000000b-f002-4007-b00a-c00000000005',
             ContactID: '00000000-0000-0000-0000-000000000001',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.ToNumber).toBeUndefined();
         expect(payload.GroupID).toBeUndefined();
         expect(payload.ContactID).toBeUndefined();

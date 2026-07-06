@@ -17,7 +17,7 @@ export class StatusApi {
     constructor(args: { URL: string; AuthToken?: string; httpClient?: IHttpClient }) {
         this.baseUrl = args.URL;
         this.authToken = args.AuthToken || "";
-        this.entity = new StatusApiRequestDTO(args);
+        this.entity = new StatusApiRequestDTO();
         this.httpClient = args.httpClient ?? new NodeHttpClient(this.authToken);
     }
 
@@ -46,7 +46,7 @@ export class StatusApi {
         }
 
         const currentEntity = this.entity;
-        this.entity = new StatusApiRequestDTO({ URL: this.baseUrl, AuthToken: this.authToken });
+        this.entity = new StatusApiRequestDTO(); // Reset state for next call
 
         const validation = this.validate(currentEntity);
         if (!validation.valid) {
@@ -57,7 +57,7 @@ export class StatusApi {
         }
 
         const channel = currentEntity.Channel || 'sms';
-        const url = `${this.baseUrl}/${channel}/${currentEntity.MessageID}?recordsPerPage=${currentEntity.RecordsPerPage}&page=${currentEntity.Page}`;
+        const url = `${this.baseUrl}/${UsefulStuff.encodePathSegment(channel)}/${UsefulStuff.encodePathSegment(currentEntity.MessageID)}?recordsPerPage=${currentEntity.RecordsPerPage}&page=${currentEntity.Page}`;
 
         const responseData = await this.httpClient.get(url);
         return this.MapStatusResponse(responseData, channel);

@@ -3,7 +3,14 @@ import { ResubmitApi } from '../../../src/Api/Actions/ResubmitApi';
 import { PacingApi } from '../../../src/Api/Actions/PacingApi';
 import { RescheduleApi } from '../../../src/Api/Actions/RescheduleApi';
 import { IHttpClient } from '../../../src/Common/IHttpClient';
-import { ErrorResponseDTO } from '../../../src/Common/dtos';
+import {
+    ErrorResponseDTO,
+    ActionApiResponseDTO,
+    IAbortArgs,
+    IResubmitArgs,
+    IPacingArgs,
+    IRescheduleArgs,
+} from '../../../src';
 
 const AUTH = 'test-auth-token';
 const BASE_URL = process.env.TNZ_API_URL ?? 'https://api.tnz.co.nz/api/v3.00';
@@ -27,25 +34,25 @@ describe('AbortApi — validation', () => {
         const api = new AbortApi({ URL: BASE_URL, AuthToken: '', httpClient });
         const result = await api.SendRequest({ MessageID: MSG_ID, Channel: 'sms' });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/AuthToken/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/AuthToken/i);
         expect(httpClient.patch).not.toHaveBeenCalled();
     });
 
     it('rejects when MessageID is missing', async () => {
         const httpClient = makeMockHttpClient();
         const api = new AbortApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
-        const result = await api.SendRequest({ Channel: 'sms' } as any);
+        const result = await api.SendRequest({ Channel: 'sms' } as unknown as IAbortArgs);
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/MessageID/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/MessageID/i);
         expect(httpClient.patch).not.toHaveBeenCalled();
     });
 
     it('rejects when Channel is missing', async () => {
         const httpClient = makeMockHttpClient();
         const api = new AbortApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
-        const result = await api.SendRequest({ MessageID: MSG_ID } as any);
+        const result = await api.SendRequest({ MessageID: MSG_ID } as unknown as IAbortArgs);
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Channel/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Channel/i);
         expect(httpClient.patch).not.toHaveBeenCalled();
     });
 
@@ -57,6 +64,15 @@ describe('AbortApi — validation', () => {
         expect(httpClient.patch).toHaveBeenCalledTimes(1);
         const [url] = httpClient.patch.mock.calls[0];
         expect(url).toContain(`/sms/${MSG_ID}/abort`);
+    });
+
+    it('percent-encodes a MessageID containing reserved URL characters instead of splicing it into the path raw', async () => {
+        const httpClient = makeMockHttpClient();
+        httpClient.patch.mockResolvedValueOnce({ ActionResult: 'Success' });
+        const api = new AbortApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
+        await api.SendRequest({ MessageID: 'a/b?c#d', Channel: 'sms' });
+        const [url] = httpClient.patch.mock.calls[0];
+        expect(url).toContain(`/sms/${encodeURIComponent('a/b?c#d')}/abort`);
     });
 
     it('includes auth token in the request (via NodeHttpClient, not directly)', async () => {
@@ -85,8 +101,8 @@ describe('AbortApi — validation', () => {
         const result = await api.SendRequest({ MessageID: MSG_ID, Channel: 'sms' });
         expect(result).not.toBeInstanceOf(ErrorResponseDTO);
         expect(result.Result).toBe('Success');
-        expect((result as any).MessageID).toBe(MSG_ID);
-        expect((result as any).JobNum).toBe('JN1');
+        expect((result as ActionApiResponseDTO).MessageID).toBe(MSG_ID);
+        expect((result as ActionApiResponseDTO).JobNum).toBe('JN1');
     });
 
 });
@@ -100,25 +116,25 @@ describe('ResubmitApi — validation', () => {
         const api = new ResubmitApi({ URL: BASE_URL, AuthToken: '', httpClient });
         const result = await api.SendRequest({ MessageID: MSG_ID, Channel: 'email' });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/AuthToken/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/AuthToken/i);
         expect(httpClient.patch).not.toHaveBeenCalled();
     });
 
     it('rejects when MessageID is missing', async () => {
         const httpClient = makeMockHttpClient();
         const api = new ResubmitApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
-        const result = await api.SendRequest({ Channel: 'email' } as any);
+        const result = await api.SendRequest({ Channel: 'email' } as unknown as IResubmitArgs);
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/MessageID/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/MessageID/i);
         expect(httpClient.patch).not.toHaveBeenCalled();
     });
 
     it('rejects when Channel is missing', async () => {
         const httpClient = makeMockHttpClient();
         const api = new ResubmitApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
-        const result = await api.SendRequest({ MessageID: MSG_ID } as any);
+        const result = await api.SendRequest({ MessageID: MSG_ID } as unknown as IResubmitArgs);
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Channel/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Channel/i);
         expect(httpClient.patch).not.toHaveBeenCalled();
     });
 
@@ -127,7 +143,7 @@ describe('ResubmitApi — validation', () => {
         const api = new ResubmitApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
         const result = await api.SendRequest({ MessageID: MSG_ID, Channel: 'sms' });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/sms/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/sms/i);
         expect(httpClient.patch).not.toHaveBeenCalled();
     });
 
@@ -136,7 +152,7 @@ describe('ResubmitApi — validation', () => {
         const api = new ResubmitApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
         const result = await api.SendRequest({ MessageID: MSG_ID, Channel: 'email', SendTime: 'bad-date' });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/SendTime/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/SendTime/i);
         expect(httpClient.patch).not.toHaveBeenCalled();
     });
 
@@ -150,6 +166,15 @@ describe('ResubmitApi — validation', () => {
         expect(url).toContain(`/${channel}/${MSG_ID}/resubmit`);
     });
 
+    it('percent-encodes a MessageID containing reserved URL characters instead of splicing it into the path raw', async () => {
+        const httpClient = makeMockHttpClient();
+        httpClient.patch.mockResolvedValueOnce({ ActionResult: 'Success' });
+        const api = new ResubmitApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
+        await api.SendRequest({ MessageID: 'a/b?c#d', Channel: 'email' });
+        const [url] = httpClient.patch.mock.calls[0];
+        expect(url).toContain(`/email/${encodeURIComponent('a/b?c#d')}/resubmit`);
+    });
+
 });
 
 // ─────────────────────────── PacingApi ────────────────────────────
@@ -161,25 +186,25 @@ describe('PacingApi — validation', () => {
         const api = new PacingApi({ URL: BASE_URL, AuthToken: '', httpClient });
         const result = await api.SendRequest({ MessageID: MSG_ID, Channel: 'tts', NumberOfOperators: 2 });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/AuthToken/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/AuthToken/i);
         expect(httpClient.patch).not.toHaveBeenCalled();
     });
 
     it('rejects when MessageID is missing', async () => {
         const httpClient = makeMockHttpClient();
         const api = new PacingApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
-        const result = await api.SendRequest({ Channel: 'tts', NumberOfOperators: 2 } as any);
+        const result = await api.SendRequest({ Channel: 'tts', NumberOfOperators: 2 } as unknown as IPacingArgs);
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/MessageID/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/MessageID/i);
         expect(httpClient.patch).not.toHaveBeenCalled();
     });
 
     it('rejects when Channel is missing', async () => {
         const httpClient = makeMockHttpClient();
         const api = new PacingApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
-        const result = await api.SendRequest({ MessageID: MSG_ID, NumberOfOperators: 2 } as any);
+        const result = await api.SendRequest({ MessageID: MSG_ID, NumberOfOperators: 2 } as unknown as IPacingArgs);
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Channel/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Channel/i);
         expect(httpClient.patch).not.toHaveBeenCalled();
     });
 
@@ -188,7 +213,7 @@ describe('PacingApi — validation', () => {
         const api = new PacingApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
         const result = await api.SendRequest({ MessageID: MSG_ID, Channel: channel, NumberOfOperators: 1 });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/tts/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/tts/i);
         expect(httpClient.patch).not.toHaveBeenCalled();
     });
 
@@ -205,9 +230,9 @@ describe('PacingApi — validation', () => {
     it('rejects when NumberOfOperators is not a number (explicitly undefined)', async () => {
         const httpClient = makeMockHttpClient();
         const api = new PacingApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
-        const result = await api.SendRequest({ MessageID: MSG_ID, Channel: 'tts', NumberOfOperators: undefined as any });
+        const result = await api.SendRequest({ MessageID: MSG_ID, Channel: 'tts', NumberOfOperators: undefined as unknown as number });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/NumberOfOperators/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/NumberOfOperators/i);
         expect(httpClient.patch).not.toHaveBeenCalled();
     });
 
@@ -219,7 +244,16 @@ describe('PacingApi — validation', () => {
         expect(httpClient.patch).toHaveBeenCalledTimes(1);
         const [url, payload] = httpClient.patch.mock.calls[0];
         expect(url).toContain(`/tts/${MSG_ID}/pacing`);
-        expect((payload as any).NumberOfOperators).toBe(3);
+        expect(payload.NumberOfOperators).toBe(3);
+    });
+
+    it('percent-encodes a MessageID containing reserved URL characters instead of splicing it into the path raw', async () => {
+        const httpClient = makeMockHttpClient();
+        httpClient.patch.mockResolvedValueOnce({ ActionResult: 'Success' });
+        const api = new PacingApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
+        await api.SendRequest({ MessageID: 'a/b?c#d', Channel: 'tts', NumberOfOperators: 1 });
+        const [url] = httpClient.patch.mock.calls[0];
+        expect(url).toContain(`/tts/${encodeURIComponent('a/b?c#d')}/pacing`);
     });
 
 });
@@ -233,34 +267,34 @@ describe('RescheduleApi — validation', () => {
         const api = new RescheduleApi({ URL: BASE_URL, AuthToken: '', httpClient });
         const result = await api.SendRequest({ MessageID: MSG_ID, Channel: 'sms', SendTime: '2030-01-01 09:00' });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/AuthToken/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/AuthToken/i);
         expect(httpClient.patch).not.toHaveBeenCalled();
     });
 
     it('rejects when MessageID is missing', async () => {
         const httpClient = makeMockHttpClient();
         const api = new RescheduleApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
-        const result = await api.SendRequest({ Channel: 'sms', SendTime: '2030-01-01 09:00' } as any);
+        const result = await api.SendRequest({ Channel: 'sms', SendTime: '2030-01-01 09:00' } as unknown as IRescheduleArgs);
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/MessageID/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/MessageID/i);
         expect(httpClient.patch).not.toHaveBeenCalled();
     });
 
     it('rejects when Channel is missing', async () => {
         const httpClient = makeMockHttpClient();
         const api = new RescheduleApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
-        const result = await api.SendRequest({ MessageID: MSG_ID, SendTime: '2030-01-01 09:00' } as any);
+        const result = await api.SendRequest({ MessageID: MSG_ID, SendTime: '2030-01-01 09:00' } as unknown as IRescheduleArgs);
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Channel/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Channel/i);
         expect(httpClient.patch).not.toHaveBeenCalled();
     });
 
     it('rejects when SendTime is missing', async () => {
         const httpClient = makeMockHttpClient();
         const api = new RescheduleApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
-        const result = await api.SendRequest({ MessageID: MSG_ID, Channel: 'sms' } as any);
+        const result = await api.SendRequest({ MessageID: MSG_ID, Channel: 'sms' } as unknown as IRescheduleArgs);
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/SendTime/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/SendTime/i);
         expect(httpClient.patch).not.toHaveBeenCalled();
     });
 
@@ -269,7 +303,7 @@ describe('RescheduleApi — validation', () => {
         const api = new RescheduleApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
         const result = await api.SendRequest({ MessageID: MSG_ID, Channel: 'sms', SendTime: 'not-a-date' });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/SendTime/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/SendTime/i);
         expect(httpClient.patch).not.toHaveBeenCalled();
     });
 
@@ -281,7 +315,16 @@ describe('RescheduleApi — validation', () => {
         expect(httpClient.patch).toHaveBeenCalledTimes(1);
         const [url, payload] = httpClient.patch.mock.calls[0];
         expect(url).toContain(`/email/${MSG_ID}/reschedule`);
-        expect((payload as any).SendTime).toBe('2030-06-15 09:00');
+        expect(payload.SendTime).toBe('2030-06-15 09:00');
+    });
+
+    it('percent-encodes a MessageID containing reserved URL characters instead of splicing it into the path raw', async () => {
+        const httpClient = makeMockHttpClient();
+        httpClient.patch.mockResolvedValueOnce({ ActionResult: 'Success' });
+        const api = new RescheduleApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
+        await api.SendRequest({ MessageID: 'a/b?c#d', Channel: 'email', SendTime: '2030-06-15 09:00' });
+        const [url] = httpClient.patch.mock.calls[0];
+        expect(url).toContain(`/email/${encodeURIComponent('a/b?c#d')}/reschedule`);
     });
 
 });

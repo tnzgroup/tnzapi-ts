@@ -1,6 +1,6 @@
 {
   "name": "tnzapi-ts",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "TypeScript Library for TNZ Group REST API v3.00 — SMS, Email, Fax, TTS, Voice, WhatsApp, Workflow, Addressbook, Opt-Out",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,9 +16,13 @@
   },
   "scripts": {
     "build": "tsc",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "test": "jest",
     "test:unit": "jest --selectProjects unit",
-    "test:integration": "jest --selectProjects integration"
+    "test:integration": "jest --selectProjects integration",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run test:unit"
   },
   "keywords": [
     "tnzapi",
@@ -33,13 +37,17 @@
   "license": "MIT",
   "homepage": "https://www.tnz.co.nz",
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/google-libphonenumber": "^7.4.30",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.12.12",
     "dotenv": "^17.2.2",
+    "eslint": "^10.6.0",
+    "globals": "^17.7.0",
     "jest": "^30.1.3",
     "ts-jest": "^29.4.1",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^8.62.1"
   },
   "dependencies": {
     "google-libphonenumber": "^3.2.44"

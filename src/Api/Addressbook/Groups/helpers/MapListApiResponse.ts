@@ -9,8 +9,8 @@ export const MapListApiResponse = (responseData: any): GroupListApiResponseDTO |
     if (!UsefulStuff.isEmpty(responseData)) {
         if (responseData.HttpStatusCode === 200 || isSuccessResult(responseData.Result)) {
             if (!UsefulStuff.isEmpty(responseData.Groups)) {
-                let groups: GroupModel[] = [];
-                for (let group of responseData.Groups) {
+                const groups: GroupModel[] = [];
+                for (const group of responseData.Groups) {
                     groups.push(new GroupModel(group));
                 }
                 responseData.Groups = groups;

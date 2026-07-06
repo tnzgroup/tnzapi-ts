@@ -1,8 +1,9 @@
 import { UsefulStuff } from "../../Functions";
 import { FaxModel } from './models';
-import { FaxApiRequestDTO, MessagingBaseRequestDTO } from './dtos';
+import { FaxApiRequestDTO, MessagingApiSuccessResponseDTO, MessagingBaseRequestDTO } from './dtos';
 import { BaseMessagingApi } from './BaseMessagingApi';
 import { IHttpClient } from '../../Common/IHttpClient';
+import { ErrorResponseDTO } from '../../Common/dtos';
 import { ValidationResult } from '../../Common/ValidationResult';
 import { IFaxArgs } from './interfaces';
 
@@ -12,7 +13,11 @@ export class FaxApi extends BaseMessagingApi<FaxModel> {
 
     constructor(args: { URL: string; AuthToken?: string; httpClient?: IHttpClient }) {
         super(args.URL, args.AuthToken || "", args.httpClient);
-        this.entity = new FaxModel(args);
+        this.entity = new FaxModel();
+    }
+
+    public async SendMessage(args?: IFaxArgs): Promise<MessagingApiSuccessResponseDTO | ErrorResponseDTO> {
+        return super.SendMessage(args);
     }
 
     protected createEntity(): FaxModel {

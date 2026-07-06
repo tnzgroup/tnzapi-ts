@@ -17,7 +17,7 @@ export class SMSReplyApi {
     constructor(args: { URL: string; AuthToken?: string; httpClient?: IHttpClient }) {
         this.baseUrl = args.URL;
         this.authToken = args.AuthToken || "";
-        this.entity = new SMSReplyApiRequestDTO(args);
+        this.entity = new SMSReplyApiRequestDTO();
         this.httpClient = args.httpClient ?? new NodeHttpClient(this.authToken);
     }
 
@@ -34,7 +34,7 @@ export class SMSReplyApi {
         }
 
         const currentEntity = this.entity;
-        this.entity = new SMSReplyApiRequestDTO({ URL: this.baseUrl, AuthToken: this.authToken });
+        this.entity = new SMSReplyApiRequestDTO(); // Reset state for next call
 
         const validation = this.validate(currentEntity);
         if (!validation.valid) {
@@ -44,7 +44,7 @@ export class SMSReplyApi {
             });
         }
 
-        const url = `${this.baseUrl}/sms/${currentEntity.MessageID}?recordsPerPage=${currentEntity.RecordsPerPage}&page=${currentEntity.Page}`;
+        const url = `${this.baseUrl}/sms/${UsefulStuff.encodePathSegment(currentEntity.MessageID)}?recordsPerPage=${currentEntity.RecordsPerPage}&page=${currentEntity.Page}`;
 
         const responseData = await this.httpClient.get(url);
         return this.MapApiResponse(responseData);

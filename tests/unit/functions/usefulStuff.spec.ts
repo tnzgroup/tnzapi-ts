@@ -9,6 +9,8 @@ import {
     formatMobileNumber,
     httpBuildQuery,
     replaceAll,
+    encodePathSegment,
+    encodeGroupSegment,
 } from '../../../src/Functions/UsefulStuff';
 
 describe('UsefulStuff', () => {
@@ -45,7 +47,7 @@ describe('UsefulStuff', () => {
         it('returns false for undefined', () => expect(isNumber(undefined)).toBe(false));
         it('returns false for null', () => expect(isNumber(null)).toBe(false));
         it('returns false for NaN', () => expect(isNumber(NaN)).toBe(false));
-        it('returns false for boolean true', () => expect(isNumber(true as any)).toBe(false));
+        it('returns false for boolean true', () => expect(isNumber(true)).toBe(false));
     });
 
     describe('isDateTime', () => {
@@ -153,6 +155,27 @@ describe('UsefulStuff', () => {
         });
         it('handles a single key-value pair', () => {
             expect(httpBuildQuery({ q: 'hello' })).toBe('q=hello');
+        });
+    });
+
+    describe('encodePathSegment', () => {
+        it('percent-encodes reserved URL characters', () => {
+            expect(encodePathSegment('a/b?c#d')).toBe(encodeURIComponent('a/b?c#d'));
+        });
+        it('leaves an already-safe value unchanged', () => {
+            expect(encodePathSegment('ID123456')).toBe('ID123456');
+        });
+    });
+
+    describe('encodeGroupSegment', () => {
+        it('prefers GroupID over GroupCode when both are present', () => {
+            expect(encodeGroupSegment('GRP001', 'my-group')).toBe('GRP001');
+        });
+        it('falls back to GroupCode when GroupID is absent', () => {
+            expect(encodeGroupSegment(undefined, 'my-group')).toBe('my-group');
+        });
+        it('percent-encodes reserved characters in the resolved value', () => {
+            expect(encodeGroupSegment(undefined, 'a/b?c#d')).toBe(encodeURIComponent('a/b?c#d'));
         });
     });
 

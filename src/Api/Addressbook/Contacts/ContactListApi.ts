@@ -16,7 +16,7 @@ export class ContactListApi {
     constructor(args: { URL: string; AuthToken?: string; httpClient?: IHttpClient }) {
         this.url = args.URL || '';
         this.authToken = args.AuthToken || "";
-        this.entity = new ContactListApiRequestDTO(args);
+        this.entity = new ContactListApiRequestDTO();
         this.httpClient = args.httpClient ?? new NodeHttpClient(this.authToken);
     }
 

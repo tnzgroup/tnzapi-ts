@@ -13,7 +13,7 @@ export class EmailApi extends BaseMessagingApi<EmailModel> {
 
     constructor(args: { URL: string; AuthToken?: string; httpClient?: IHttpClient }) {
         super(args.URL, args.AuthToken || "", args.httpClient);
-        this.entity = new EmailModel(args);
+        this.entity = new EmailModel();
     }
 
     protected createEntity(): EmailModel {

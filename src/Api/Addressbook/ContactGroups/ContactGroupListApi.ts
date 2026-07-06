@@ -13,7 +13,7 @@ export class ContactGroupListApi {
     constructor(args: { URL: string; AuthToken?: string }) {
         this.url = args.URL;
         this.authToken = args.AuthToken || "";
-        this.entity = new ContactGroupListApiRequestDTO(args);
+        this.entity = new ContactGroupListApiRequestDTO();
     }
 
     public async Run(args?: IContactGroupListArgs): Promise<ContactGroupListApiResponseDTO | ErrorResponseDTO> {
@@ -22,7 +22,7 @@ export class ContactGroupListApi {
         }
 
         const currentEntity = this.entity;
-        this.entity = new ContactGroupListApiRequestDTO({ URL: this.url, AuthToken: this.authToken });
+        this.entity = new ContactGroupListApiRequestDTO(); // Reset state for next call
 
         const validation = this.validate(currentEntity);
         if (!validation.valid) {
@@ -32,7 +32,7 @@ export class ContactGroupListApi {
             });
         }
 
-        const url = `${this.url}/${currentEntity.ContactID}/Group/List?recordsPerPage=${currentEntity.RecordsPerPage}&page=${currentEntity.Page}`;
+        const url = `${this.url}/${UsefulStuff.encodePathSegment(currentEntity.ContactID)}/Group/List?recordsPerPage=${currentEntity.RecordsPerPage}&page=${currentEntity.Page}`;
 
         const responseData = await HttpRequestAsync(url, {}, this.authToken, "GET");
         return helpers.MapListApiResponse(responseData);

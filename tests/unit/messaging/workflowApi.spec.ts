@@ -1,6 +1,8 @@
 import { WorkflowApi } from '../../../src/Api/Messaging/WorkflowApi';
 import { IHttpClient } from '../../../src/Common/IHttpClient';
 import { WebhookCallbackFormat } from '../../../src/Common/enums/MessagingEnums';
+import { WorkflowApiRequestDTO } from '../../../src/Api/Messaging/dtos';
+import { ErrorResponseDTO, IWorkflowArgs } from '../../../src';
 
 const AUTH = 'test-auth-token';
 const BASE_URL = process.env.TNZ_API_URL ?? 'https://api.tnz.co.nz/api/v3.00';
@@ -30,7 +32,7 @@ describe('WorkflowApi — validation', () => {
             Destinations: [{ ContactID: '00000000-0000-0000-0000-000000000001' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/AuthToken/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/AuthToken/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -38,9 +40,9 @@ describe('WorkflowApi — validation', () => {
         const { api, httpClient } = makeApi();
         const result = await api.SendMessage({
             Destinations: [{ ContactID: '00000000-0000-0000-0000-000000000001' }],
-        } as any);
+        } as unknown as IWorkflowArgs);
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/WorkflowTemplateID/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/WorkflowTemplateID/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -51,7 +53,7 @@ describe('WorkflowApi — validation', () => {
             Destinations: [],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Destination/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Destination/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -59,11 +61,11 @@ describe('WorkflowApi — validation', () => {
         const { api, httpClient } = makeApi();
         const result = await api.SendMessage({
             WorkflowTemplateID: TEMPLATE_ID,
-            Mode: 'Live' as any,
+            Mode: 'Live' as unknown as IWorkflowArgs['Mode'],
             Destinations: [{ ContactID: '00000000-0000-0000-0000-000000000001' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Mode/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Mode/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -88,7 +90,7 @@ describe('WorkflowApi — validation', () => {
             WorkflowTemplateID: TEMPLATE_ID,
             Destinations: [{ ContactID: '00000000-0000-0000-0000-000000000001' }],
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as WorkflowApiRequestDTO;
         expect(payload.NotificationType).toBeUndefined();
     });
 
@@ -99,7 +101,7 @@ describe('WorkflowApi — validation', () => {
             WorkflowTemplateID: TEMPLATE_ID,
             Destinations: [{ ContactID: '00000000-0000-0000-0000-000000000001', Custom5: 'v5', Custom7: 'v7', Custom9: 'v9' }],
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as WorkflowApiRequestDTO;
         expect(payload.Destinations[0].Custom5).toBe('v5');
         expect(payload.Destinations[0].Custom7).toBe('v7');
         expect(payload.Destinations[0].Custom9).toBe('v9');
@@ -130,7 +132,7 @@ describe('WorkflowApi — validation', () => {
                 FirstName: 'Alice',
             }],
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as WorkflowApiRequestDTO;
         expect(payload.Destinations[0].ToNumber).toBe('+6421000001');
         expect(payload.Destinations[0].EmailAddress).toBe('alice@example.com');
         expect(payload.Destinations[0].MainPhone).toBe('+6491000001');
@@ -143,9 +145,9 @@ describe('WorkflowApi — validation', () => {
             WorkflowTemplateID: TEMPLATE_ID,
             WebhookCallbackURL: 'https://example.com/hook',
             Destinations: [{ ContactID: '00000000-0000-0000-0000-000000000001' }],
-        } as any);
+        });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/WebhookCallbackFormat/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/WebhookCallbackFormat/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -157,7 +159,7 @@ describe('WorkflowApi — validation', () => {
             Destinations: [{ ContactID: '00000000-0000-0000-0000-000000000001' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/SendTime/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/SendTime/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -182,7 +184,7 @@ describe('WorkflowApi — AddRecipient', () => {
         api.AddRecipient({ ContactID: '00000000-0000-0000-0000-000000000001' });
         api.AddRecipient({ ContactID: '00000000-0000-0000-0000-000000000002' });
         await api.SendMessage({ WorkflowTemplateID: TEMPLATE_ID });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as WorkflowApiRequestDTO;
         expect(payload.Destinations).toHaveLength(2);
     });
 
@@ -198,7 +200,7 @@ describe('WorkflowApi — single-destination shorthand', () => {
             ToNumber: '+6421000001',
         });
         expect(result.Result).toBe('Success');
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as WorkflowApiRequestDTO;
         expect(payload.Destinations).toHaveLength(1);
         expect(payload.Destinations[0].ToNumber).toBe('+6421000001');
     });
@@ -210,7 +212,7 @@ describe('WorkflowApi — single-destination shorthand', () => {
             WorkflowTemplateID: TEMPLATE_ID,
             MainPhone: '+6491000001',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as WorkflowApiRequestDTO;
         expect(payload.Destinations).toHaveLength(1);
         expect(payload.Destinations[0].MainPhone).toBe('+6491000001');
     });
@@ -223,7 +225,7 @@ describe('WorkflowApi — single-destination shorthand', () => {
             ToNumber: '+6421000001',
             MainPhone: '+6491000001',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as WorkflowApiRequestDTO;
         expect(payload.Destinations).toHaveLength(2);
         expect(payload.Destinations[0].ToNumber).toBe('+6421000001');
         expect(payload.Destinations[1].MainPhone).toBe('+6491000001');
@@ -237,7 +239,7 @@ describe('WorkflowApi — single-destination shorthand', () => {
             GroupID: '4000000b-f002-4007-b00a-c00000000005',
             ContactID: '00000000-0000-0000-0000-000000000001',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as WorkflowApiRequestDTO;
         expect(payload.Destinations).toHaveLength(2);
     });
 
@@ -249,7 +251,7 @@ describe('WorkflowApi — single-destination shorthand', () => {
             ToNumber: '+6421000001',
             Destinations: [{ ContactID: '00000000-0000-0000-0000-000000000002' }],
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as WorkflowApiRequestDTO;
         expect(payload.Destinations).toHaveLength(2);
     });
 
@@ -263,7 +265,7 @@ describe('WorkflowApi — single-destination shorthand', () => {
             GroupID: '4000000b-f002-4007-b00a-c00000000005',
             ContactID: '00000000-0000-0000-0000-000000000001',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as Record<string, unknown>;
         expect(payload.ToNumber).toBeUndefined();
         expect(payload.MainPhone).toBeUndefined();
         expect(payload.GroupID).toBeUndefined();

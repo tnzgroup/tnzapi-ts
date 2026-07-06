@@ -1,6 +1,9 @@
 import { VoiceApi } from '../../../src/Api/Messaging/VoiceApi';
 import { IHttpClient } from '../../../src/Common/IHttpClient';
 import { WebhookCallbackFormat, AnswerPhoneMode } from '../../../src/Common/enums/MessagingEnums';
+import { FileHandler } from '../../../src/Functions';
+import { ErrorResponseDTO } from '../../../src';
+import { VoiceApiRequestDTO } from '../../../src/Api/Messaging/dtos';
 
 const AUTH = 'test-auth-token';
 const BASE_URL = process.env.TNZ_API_URL ?? 'https://api.tnz.co.nz/api/v3.00';
@@ -23,15 +26,15 @@ describe('VoiceApi — validation', () => {
             Destinations: [{ MainPhone: '+6492345678' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/AuthToken/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/AuthToken/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
     it('rejects when both MessageToPeople and TemplateID are missing', async () => {
         const { api, httpClient } = makeApi();
-        const result = await api.SendMessage({ Destinations: [{ MainPhone: '+6492345678' }] } as any);
+        const result = await api.SendMessage({ Destinations: [{ MainPhone: '+6492345678' }] });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/MessageToPeople|TemplateID/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/MessageToPeople|TemplateID/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -50,7 +53,7 @@ describe('VoiceApi — validation', () => {
         const { api, httpClient } = makeApi();
         const result = await api.SendMessage({ MessageToPeople: 'Hello', Destinations: [] });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Destination/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Destination/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -58,11 +61,11 @@ describe('VoiceApi — validation', () => {
         const { api, httpClient } = makeApi();
         const result = await api.SendMessage({
             MessageToPeople: 'Hello',
-            Mode: 'Live' as any,
+            Mode: 'Live' as unknown as 'Test',
             Destinations: [{ MainPhone: '+6492345678' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Mode/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Mode/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -72,9 +75,9 @@ describe('VoiceApi — validation', () => {
             MessageToPeople: 'Hello',
             WebhookCallbackURL: 'https://example.com/hook',
             Destinations: [{ MainPhone: '+6492345678' }],
-        } as any);
+        });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/WebhookCallbackFormat/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/WebhookCallbackFormat/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -101,7 +104,7 @@ describe('VoiceApi — validation', () => {
             Destinations: [{ MainPhone: '+6492345678' }],
             AnswerPhoneMode: AnswerPhoneMode.DAS,
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as VoiceApiRequestDTO;
         expect(payload.MessageToAnswerPhones).toBe('Leave a message.');
         expect(payload.AnswerPhoneMode).toBe('DAS');
     });
@@ -114,7 +117,7 @@ describe('VoiceApi — validation', () => {
             Destinations: [{ MainPhone: '+6492345678' }],
             Keypads: [{ Tone: 1, RouteNumber: '+6491000001', Play: 'Connecting.' }],
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as VoiceApiRequestDTO;
         expect(payload.Keypads[0].Tone).toBe(1);
         expect(payload.Keypads[0].RouteNumber).toBe('+6491000001');
     });
@@ -130,7 +133,7 @@ describe('VoiceApi — validation', () => {
             CallRouteMessageToPeople: 'Connecting.',
             CallRouteMessageToOperators: 'Incoming call.',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as VoiceApiRequestDTO;
         expect(payload.KeypadOptionRequired).toBe(true);
         expect(payload.CallRouteMessageOnWrongKey).toBe('Invalid key.');
         expect(payload.CallRouteMessageToPeople).toBe('Connecting.');
@@ -157,7 +160,7 @@ describe('VoiceApi — validation', () => {
             Destinations: [{ MainPhone: '+6492345678' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/attachment/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/attachment/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -169,8 +172,47 @@ describe('VoiceApi — validation', () => {
             Keypads: [{ Tone: 1, RouteNumber: '+6491000001', File: '/non-existent/keypad.wav' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/attachment/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/attachment/i);
         expect(httpClient.post).not.toHaveBeenCalled();
+    });
+
+});
+
+describe('VoiceApi — AddVoiceFile', () => {
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    it('returns the api instance immediately, then fails SendMessage for a non-existent file path', async () => {
+        const { api, httpClient } = makeApi();
+        jest.spyOn(FileHandler, 'fileExists').mockReturnValueOnce(false);
+        const returned = api.AddVoiceFile('MessageToPeople', '/non-existent/audio.wav');
+        expect(returned).toBe(api);
+        const result = await api.SendMessage({
+            MessageToPeople: 'Hello',
+            Destinations: [{ MainPhone: '+6492345678' }],
+        });
+        expect(result.Result).toBe('Error');
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toBe('Attachment file not found: /non-existent/audio.wav');
+        expect(httpClient.post).not.toHaveBeenCalled();
+    });
+
+    it('adds the file to VoiceFiles when the path exists', async () => {
+        const { api, httpClient } = makeApi();
+        jest.spyOn(FileHandler, 'fileExists').mockReturnValueOnce(true);
+        jest.spyOn(FileHandler, 'getFileData').mockResolvedValue('ZmFrZWRhdGE=');
+        httpClient.post.mockResolvedValueOnce({ Result: 'Success', MessageID: 'voice-af1' });
+        api.AddVoiceFile('MessageToPeople', '/real/audio.wav');
+        const result = await api.SendMessage({
+            Destinations: [{ MainPhone: '+6492345678' }],
+        });
+        expect(result.Result).toBe('Success');
+        // VoiceApiRequestDTO maps each VoiceFiles entry onto its named top-level field
+        // (e.g. MessageToPeople) and strips VoiceFiles itself before serializing.
+        const payload = httpClient.post.mock.calls[0][1] as VoiceApiRequestDTO & { VoiceFiles?: unknown };
+        expect(payload.MessageToPeople).toBe('ZmFrZWRhdGE=');
+        expect(payload.VoiceFiles).toBeUndefined();
     });
 
 });
@@ -185,7 +227,7 @@ describe('VoiceApi — single-destination shorthand', () => {
             ToNumber: '+6492345678',
         });
         expect(result.Result).toBe('Success');
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as VoiceApiRequestDTO;
         expect(payload.Destinations).toHaveLength(1);
         expect(payload.Destinations[0].MainPhone).toBe('+6492345678');
         expect(payload.Destinations[0].ToNumber).toBeUndefined();
@@ -198,7 +240,7 @@ describe('VoiceApi — single-destination shorthand', () => {
             MessageToPeople: 'Hi',
             ToNumber: '+6492345678,+6493456789',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as VoiceApiRequestDTO;
         expect(payload.Destinations).toHaveLength(2);
     });
 
@@ -210,7 +252,7 @@ describe('VoiceApi — single-destination shorthand', () => {
             GroupID: '4000000b-f002-4007-b00a-c00000000005',
             ContactID: '00000000-0000-0000-0000-000000000001',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as VoiceApiRequestDTO;
         expect(payload.Destinations).toHaveLength(2);
     });
 
@@ -222,7 +264,7 @@ describe('VoiceApi — single-destination shorthand', () => {
             ToNumber: '+6492345678',
             Destinations: [{ MainPhone: '+6493456789' }],
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as VoiceApiRequestDTO;
         expect(payload.Destinations).toHaveLength(2);
     });
 
@@ -233,7 +275,7 @@ describe('VoiceApi — single-destination shorthand', () => {
             ToNumber: 'not-a-number',
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/phone number/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/phone number/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -246,7 +288,7 @@ describe('VoiceApi — single-destination shorthand', () => {
             GroupID: '4000000b-f002-4007-b00a-c00000000005',
             ContactID: '00000000-0000-0000-0000-000000000001',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as VoiceApiRequestDTO & { ToNumber?: unknown; GroupID?: unknown; ContactID?: unknown };
         expect(payload.ToNumber).toBeUndefined();
         expect(payload.GroupID).toBeUndefined();
         expect(payload.ContactID).toBeUndefined();

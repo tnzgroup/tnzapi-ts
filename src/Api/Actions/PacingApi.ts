@@ -16,7 +16,7 @@ export class PacingApi {
     constructor(args: { URL: string; AuthToken?: string; httpClient?: IHttpClient }) {
         this.baseUrl = args.URL;
         this.authToken = args.AuthToken || "";
-        this.entity = new PacingApiRequestDTO(args);
+        this.entity = new PacingApiRequestDTO();
         this.httpClient = args.httpClient ?? new NodeHttpClient(this.authToken);
     }
 
@@ -26,7 +26,7 @@ export class PacingApi {
         }
 
         const currentEntity = this.entity;
-        this.entity = new PacingApiRequestDTO({ URL: this.baseUrl, AuthToken: this.authToken });
+        this.entity = new PacingApiRequestDTO(); // Reset state for next call
 
         const validation = this.validate(currentEntity);
         if (!validation.valid) {
@@ -36,7 +36,7 @@ export class PacingApi {
             });
         }
 
-        const url = `${this.baseUrl}/${currentEntity.Channel}/${currentEntity.MessageID}/pacing`;
+        const url = `${this.baseUrl}/${UsefulStuff.encodePathSegment(currentEntity.Channel)}/${UsefulStuff.encodePathSegment(currentEntity.MessageID)}/pacing`;
 
         const responseData = await this.httpClient.patch(url, { NumberOfOperators: currentEntity.NumberOfOperators });
         return helpers.MapApiResponse(responseData);

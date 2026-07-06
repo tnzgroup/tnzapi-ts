@@ -13,7 +13,7 @@ export class WorkflowApi extends BaseMessagingApi<WorkflowModel> {
 
     constructor(args: { URL: string; AuthToken?: string; httpClient?: IHttpClient }) {
         super(args.URL, args.AuthToken || "", args.httpClient);
-        this.entity = new WorkflowModel(args);
+        this.entity = new WorkflowModel();
     }
 
     public async SendMessage(args?: IWorkflowArgs): Promise<MessagingApiSuccessResponseDTO | ErrorResponseDTO> {

@@ -1,6 +1,7 @@
 import { TTSApi } from '../../../src/Api/Messaging/TTSApi';
 import { IHttpClient } from '../../../src/Common/IHttpClient';
 import { WebhookCallbackFormat, TTSVoice, AnswerPhoneMode } from '../../../src/Common/enums/MessagingEnums';
+import { ErrorResponseDTO } from '../../../src';
 
 const AUTH = 'test-auth-token';
 const BASE_URL = process.env.TNZ_API_URL ?? 'https://api.tnz.co.nz/api/v3.00';
@@ -23,15 +24,15 @@ describe('TTSApi — validation', () => {
             Destinations: [{ MainPhone: '+64211111111' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/AuthToken/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/AuthToken/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
     it('rejects when both MessageToPeople and TemplateID are missing', async () => {
         const { api, httpClient } = makeApi();
-        const result = await api.SendMessage({ Destinations: [{ MainPhone: '+64211111111' }] } as any);
+        const result = await api.SendMessage({ Destinations: [{ MainPhone: '+64211111111' }] });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/MessageToPeople|TemplateID/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/MessageToPeople|TemplateID/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -50,7 +51,7 @@ describe('TTSApi — validation', () => {
         const { api, httpClient } = makeApi();
         const result = await api.SendMessage({ MessageToPeople: 'Hello', Destinations: [] });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Destination/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Destination/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -58,11 +59,11 @@ describe('TTSApi — validation', () => {
         const { api, httpClient } = makeApi();
         const result = await api.SendMessage({
             MessageToPeople: 'Hello',
-            Mode: 'Live' as any,
+            Mode: 'Live' as unknown as 'Test',
             Destinations: [{ MainPhone: '+64211111111' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Mode/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Mode/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -72,9 +73,9 @@ describe('TTSApi — validation', () => {
             MessageToPeople: 'Hello',
             WebhookCallbackURL: 'https://example.com/hook',
             Destinations: [{ MainPhone: '+64211111111' }],
-        } as any);
+        });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/WebhookCallbackFormat/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/WebhookCallbackFormat/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -100,7 +101,7 @@ describe('TTSApi — validation', () => {
             Destinations: [{ MainPhone: '+64211111111' }],
             Voice: TTSVoice.Nicole,
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Voice).toBe('Nicole');
     });
 
@@ -113,7 +114,7 @@ describe('TTSApi — validation', () => {
             Destinations: [{ MainPhone: '+64211111111' }],
             AnswerPhoneMode: AnswerPhoneMode.DAS,
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.MessageToAnswerPhones).toBe('Leave a message.');
         expect(payload.AnswerPhoneMode).toBe('DAS');
     });
@@ -126,7 +127,7 @@ describe('TTSApi — validation', () => {
             Destinations: [{ MainPhone: '+64211111111' }],
             Keypads: [{ Tone: 1, RouteNumber: '+6491000001', Play: 'Connecting.' }],
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Keypads[0].Tone).toBe(1);
         expect(payload.Keypads[0].RouteNumber).toBe('+6491000001');
     });
@@ -142,7 +143,7 @@ describe('TTSApi — validation', () => {
             CallRouteMessageToPeople: 'Connecting.',
             CallRouteMessageToOperators: 'Incoming call.',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.KeypadOptionRequired).toBe(true);
         expect(payload.CallRouteMessageOnWrongKey).toBe('Invalid key.');
         expect(payload.CallRouteMessageToPeople).toBe('Connecting.');
@@ -174,7 +175,7 @@ describe('TTSApi — single-destination shorthand', () => {
             ToNumber: '+64211111111',
         });
         expect(result.Result).toBe('Success');
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Destinations).toHaveLength(1);
         expect(payload.Destinations[0].MainPhone).toBe('+64211111111');
         expect(payload.Destinations[0].ToNumber).toBeUndefined();
@@ -187,7 +188,7 @@ describe('TTSApi — single-destination shorthand', () => {
             MessageToPeople: 'Hi',
             ToNumber: '+64211111111,+64221111111',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Destinations).toHaveLength(2);
         expect(payload.Destinations.map((d: any) => d.MainPhone)).toEqual([
             '+64211111111', '+64221111111',
@@ -202,7 +203,7 @@ describe('TTSApi — single-destination shorthand', () => {
             GroupID: '4000000b-f002-4007-b00a-c00000000005',
             ContactID: '00000000-0000-0000-0000-000000000001',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Destinations).toHaveLength(2);
     });
 
@@ -214,7 +215,7 @@ describe('TTSApi — single-destination shorthand', () => {
             ToNumber: '+64211111111',
             Destinations: [{ MainPhone: '+64221111111' }],
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.Destinations).toHaveLength(2);
     });
 
@@ -225,7 +226,7 @@ describe('TTSApi — single-destination shorthand', () => {
             ToNumber: 'not-a-number',
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/phone number/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/phone number/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -238,7 +239,7 @@ describe('TTSApi — single-destination shorthand', () => {
             GroupID: '4000000b-f002-4007-b00a-c00000000005',
             ContactID: '00000000-0000-0000-0000-000000000001',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1];
         expect(payload.ToNumber).toBeUndefined();
         expect(payload.GroupID).toBeUndefined();
         expect(payload.ContactID).toBeUndefined();

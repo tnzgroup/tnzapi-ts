@@ -13,7 +13,7 @@ export class GroupContactDetailApi {
     constructor(args: { URL: string; AuthToken?: string }) {
         this.contactUrl = args.URL.replace(/\/group\/?$/, '/contact');
         this.authToken = args.AuthToken || "";
-        this.entity = new GroupContactApiRequestDTO(args);
+        this.entity = new GroupContactApiRequestDTO();
     }
 
     public async Run(args?: IGroupContactArgs): Promise<GroupContactApiResponseDTO | ErrorResponseDTO> {
@@ -32,7 +32,7 @@ export class GroupContactDetailApi {
             });
         }
 
-        const url = `${this.contactUrl}/${currentEntity.ContactID}/group/${currentEntity.GroupID ?? currentEntity.GroupCode}`;
+        const url = `${this.contactUrl}/${UsefulStuff.encodePathSegment(currentEntity.ContactID)}/group/${UsefulStuff.encodeGroupSegment(currentEntity.GroupID, currentEntity.GroupCode)}`;
         const responseData = await HttpRequestAsync(url, {}, this.authToken, "GET");
         return helpers.MapApiResponse(responseData);
     }

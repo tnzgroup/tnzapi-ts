@@ -17,7 +17,7 @@ export class GroupCreateApi {
     constructor(args: { URL: string; AuthToken?: string; httpClient?: IHttpClient }) {
         this.url = args.URL;
         this.authToken = args.AuthToken || "";
-        this.entity = new GroupApiRequestDTO(args);
+        this.entity = new GroupApiRequestDTO();
         this.httpClient = args.httpClient ?? new NodeHttpClient(this.authToken);
     }
 

@@ -71,6 +71,16 @@ export const HttpRequest = (url: string, payload: any, authToken: string, method
         return;
     }
 
+    if (host.Protocol !== 'https' && process.env.TNZ_ALLOW_INSECURE_HTTP !== 'true') {
+        callback({ Result: "Error", ErrorMessage: ["TNZ API URL must use HTTPS — refusing to send the Authorization bearer token over plain HTTP. Set TNZ_ALLOW_INSECURE_HTTP=true to override for local development."] });
+        return;
+    }
+
+    if (process.env.TNZ_UNSAFE_IGNORE_SSL === 'true' && process.env.NODE_ENV === 'production') {
+        callback({ Result: "Error", ErrorMessage: ["TNZ_UNSAFE_IGNORE_SSL cannot be used when NODE_ENV=production — this would accept forged/expired/invalid TLS certificates while still sending the Authorization bearer token, exposing it to man-in-the-middle interception. Unset TNZ_UNSAFE_IGNORE_SSL."] });
+        return;
+    }
+
     const isGet = method.toUpperCase() === 'GET';
     const postData = isGet ? '' : JSON.stringify(payload);
 
@@ -92,7 +102,7 @@ export const HttpRequest = (url: string, payload: any, authToken: string, method
         method: method,
         protocol: `${host.Protocol}:`,
         headers: headers,
-        ...(host.Protocol === 'https' && process.env.TNZ_IGNORE_SSL === 'true'
+        ...(host.Protocol === 'https' && process.env.TNZ_UNSAFE_IGNORE_SSL === 'true'
             ? { agent: sslIgnoreAgent }
             : {})
     };
@@ -128,7 +138,7 @@ export const HttpRequest = (url: string, payload: any, authToken: string, method
 };
 
 export const HttpRequestAsync = (url: string, payload: any, authToken: string, method: string): Promise<any> => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         HttpRequest(url, payload, authToken, method, (data) => {
             resolve(data);
         });

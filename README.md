@@ -110,9 +110,14 @@ cp .env.example .env
 TNZ_AUTH_TOKEN=your-auth-token-here
 ```
 
-Then instantiate with no arguments — the token is read automatically:
+`tnzapi-ts` has zero runtime dependencies and only reads `process.env.TNZ_AUTH_TOKEN` — it does **not** load `.env` files itself. Some frameworks (Next.js, NestJS with `ConfigModule`, etc.) load `.env` into `process.env` automatically; in a plain Node.js script you need to load it yourself, e.g. with [`dotenv`](https://www.npmjs.com/package/dotenv):
+
+```bash
+npm install dotenv
+```
 
 ```typescript
+import 'dotenv/config';
 import { TNZAPI } from 'tnzapi-ts';
 
 const client = new TNZAPI();
@@ -155,13 +160,16 @@ Or via environment variable:
 TNZ_API_URL=https://staging-api.tnz.co.nz/api/v3.00
 ```
 
+`TNZ_API_URL` must use `https://` — the library refuses to send the `Authorization` bearer token over plain HTTP, since it would otherwise be exposed to network interception. For a local dev server without a valid certificate, use `https://` with `TNZ_UNSAFE_IGNORE_SSL=true` (see below) rather than switching to `http://`. If you genuinely need plain HTTP (e.g. a local mock server), set `TNZ_ALLOW_INSECURE_HTTP=true` — never do this outside local development.
+
 ### Environment Variables
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `TNZ_AUTH_TOKEN` | Yes\* | — | Bearer token from TNZ Dashboard |
-| `TNZ_API_URL` | No | `https://api.tnz.co.nz/api/v3.00` | Override the base API URL |
-| `TNZ_IGNORE_SSL` | No | — | Set to `true` to bypass SSL verification (local dev with self-signed certs) |
+| `TNZ_API_URL` | No | `https://api.tnz.co.nz/api/v3.00` | Override the base API URL. Must be `https://` unless `TNZ_ALLOW_INSECURE_HTTP` is set |
+| `TNZ_UNSAFE_IGNORE_SSL` | No | — | Set to `true` to bypass TLS certificate verification (local dev with self-signed certs). Named for visibility — this disables MITM protection while still sending your real bearer token, so never set it outside local development. Also hard-fails if `NODE_ENV=production` |
+| `TNZ_ALLOW_INSECURE_HTTP` | No | — | Set to `true` to allow `TNZ_API_URL`/`URL` to use plain `http://` (local development only — never in production) |
 
 \* Required unless passed directly to the constructor.
 
@@ -828,6 +836,8 @@ const result = await client.Messaging.Voice
 
 > **Note:** `AddRecipient('+64...')` (string input) produces `{ Recipient: '...' }` internally for backward compatibility. Both the string and object forms are accepted by the API. State accumulated via builder calls is reset after each `SendMessage` call.
 
+> **Note:** `AddAttachment` and `AddVoiceFile` check that the file exists when called. A path that doesn't resolve to a real file is not silently dropped — it's recorded, and the next `SendMessage` call returns `{ Result: "Error", ErrorMessage: ["Attachment file not found: <path>"] }` instead of sending without it.
+
 `AddRecipient` is typed per channel, not against the cross-channel union: on `client.Messaging.SMS`, for example, it's `(recipient: string | ISMSDestination | Array<string | ISMSDestination>) => this` — passing another channel's destination type (e.g. an `IEmailDestination` to `Messaging.SMS.AddRecipient`) will fail to type-check. Each messaging class accepts string, its own destination object, or an array of either. `IMessagingDestination` (`ISMSDestination | IEmailDestination | IFaxDestination | ITTSDestination | IVoiceDestination | IWhatsAppDestination | IRCSDestination | IWorkflowDestination`) is exported as a convenience union type, not the actual parameter type of any single channel's `AddRecipient`.
 
 ---
@@ -1002,10 +1012,12 @@ for (const msg of result.Messages ?? []) {
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `TimePeriod` | `number` | Minutes to look back (1–1440). Used if `DateFrom`/`DateTo` not set |
-| `DateFrom` | `string` | Start date — ISO 8601 or `YYYY-MM-DD` |
-| `DateTo` | `string` | End date — ISO 8601 or `YYYY-MM-DD` |
+| `DateFrom` | `string` | Start date — ISO 8601 or `YYYY-MM-DD`. Must be supplied together with `DateTo` |
+| `DateTo` | `string` | End date — ISO 8601 or `YYYY-MM-DD`. Must be supplied together with `DateFrom` |
 | `RecordsPerPage` | `number` | Default: 100, max: 999 |
 | `Page` | `number` | Default: 1 |
+
+Supplying only one of `DateFrom`/`DateTo` is a validation error — it does not fall back to `TimePeriod`.
 
 ---
 
@@ -1488,6 +1500,12 @@ if (result.Result === "Success") {
 ---
 
 ## TypeScript Types Reference
+
+All interfaces and DTOs below are exported from the package root, so they can be imported directly for typing wrapper functions, mocks, or app-level request objects:
+
+```typescript
+import { ISMSArgs, IEmailArgs, MessagingApiSuccessResponseDTO, ErrorResponseDTO } from 'tnzapi-ts';
+```
 
 ### ITNZAuthArgs
 
@@ -2169,7 +2187,7 @@ TNZ_TEST_MESSAGE_ID=ID123456
 TNZ_TEST_MESSAGE_CHANNEL=sms
 
 # Optional: bypass SSL for local dev API server
-# TNZ_IGNORE_SSL=true
+# TNZ_UNSAFE_IGNORE_SSL=true
 # TNZ_API_URL=https://localhost:5001/api/v3.00
 ```
 

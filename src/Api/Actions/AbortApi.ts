@@ -16,7 +16,7 @@ export class AbortApi {
     constructor(args: { URL: string; AuthToken?: string; httpClient?: IHttpClient }) {
         this.baseUrl = args.URL;
         this.authToken = args.AuthToken || "";
-        this.entity = new AbortApiRequestDTO(args);
+        this.entity = new AbortApiRequestDTO();
         this.httpClient = args.httpClient ?? new NodeHttpClient(this.authToken);
     }
 
@@ -26,7 +26,7 @@ export class AbortApi {
         }
 
         const currentEntity = this.entity;
-        this.entity = new AbortApiRequestDTO({ URL: this.baseUrl, AuthToken: this.authToken });
+        this.entity = new AbortApiRequestDTO(); // Reset state for next call
 
         const validation = this.validate(currentEntity);
         if (!validation.valid) {
@@ -36,7 +36,7 @@ export class AbortApi {
             });
         }
 
-        const url = `${this.baseUrl}/${currentEntity.Channel}/${currentEntity.MessageID}/abort`;
+        const url = `${this.baseUrl}/${UsefulStuff.encodePathSegment(currentEntity.Channel)}/${UsefulStuff.encodePathSegment(currentEntity.MessageID)}/abort`;
 
         const responseData = await this.httpClient.patch(url, {});
         return helpers.MapApiResponse(responseData);

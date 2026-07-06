@@ -1,6 +1,9 @@
 import { SMSApi } from '../../../src/Api/Messaging/SMSApi';
 import { IHttpClient } from '../../../src/Common/IHttpClient';
 import { WebhookCallbackFormat, SMSFallbackMode, NotificationType } from '../../../src/Common/enums/MessagingEnums';
+import { expectNoLeakedConstructorArgs } from '../testHelpers';
+import { ErrorResponseDTO } from '../../../src';
+import { SMSApiRequestDTO } from '../../../src/Api/Messaging/dtos';
 
 const AUTH = 'test-auth-token';
 const BASE_URL = process.env.TNZ_API_URL ?? 'https://api.tnz.co.nz/api/v3.00';
@@ -25,15 +28,15 @@ describe('SMSApi — validation', () => {
         const { api, httpClient } = makeApi('');
         const result = await api.SendMessage({ Message: 'Hi', Destinations: [{ ToNumber: '+64211111111' }] });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/AuthToken/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/AuthToken/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
     it('rejects when both Message and TemplateID are missing', async () => {
         const { api, httpClient } = makeApi();
-        const result = await api.SendMessage({ Destinations: [{ ToNumber: '+64211111111' }] } as any);
+        const result = await api.SendMessage({ Destinations: [{ ToNumber: '+64211111111' }] });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Message/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Message/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -52,7 +55,7 @@ describe('SMSApi — validation', () => {
         const { api, httpClient } = makeApi();
         const result = await api.SendMessage({ Message: 'Hi', Destinations: [] });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Destination/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Destination/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -63,7 +66,7 @@ describe('SMSApi — validation', () => {
             Destinations: [{ ToNumber: 'not-a-number' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/ToNumber/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/ToNumber/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -75,7 +78,7 @@ describe('SMSApi — validation', () => {
             Destinations: [{ ToNumber: '+64211111111' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/SendTime/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/SendTime/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -85,9 +88,9 @@ describe('SMSApi — validation', () => {
             Message: 'Hi',
             WebhookCallbackURL: 'https://example.com/hook',
             Destinations: [{ ToNumber: '+64211111111' }],
-        } as any);
+        });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/WebhookCallbackFormat/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/WebhookCallbackFormat/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -121,11 +124,11 @@ describe('SMSApi — validation', () => {
         const { api, httpClient } = makeApi();
         const result = await api.SendMessage({
             Message: 'Hi',
-            Mode: 'Live' as any,
+            Mode: 'Live' as unknown as 'Test',
             Destinations: [{ ToNumber: '+64211111111' }],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Mode/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Mode/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -154,7 +157,7 @@ describe('SMSApi — validation', () => {
             WebhookCallbackFormat: WebhookCallbackFormat.JSON,
         });
         expect(httpClient.post).toHaveBeenCalledTimes(1);
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as SMSApiRequestDTO;
         expect(payload.FallbackMode).toBe('Voice');
         expect(payload.NotificationType).toBe('Webhook');
     });
@@ -172,7 +175,7 @@ describe('SMSApi — validation', () => {
                 Custom1: 'val1',
             }],
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as SMSApiRequestDTO;
         expect(payload.Destinations[0].ToNumber).toBe('+64211111111');
         expect(payload.Destinations[0].FirstName).toBe('Jane');
         expect(payload.Destinations[0].Custom1).toBe('val1');
@@ -197,7 +200,7 @@ describe('SMSApi — validation', () => {
             Attachments: ['/non-existent/file.pdf'],
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/attachment/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/attachment/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -222,7 +225,7 @@ describe('SMSApi — AddRecipient', () => {
         api.AddRecipient({ ToNumber: '+64211111111' });
         api.AddRecipient({ ToNumber: '+64221111111' });
         await api.SendMessage({ Message: 'Hi' });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as SMSApiRequestDTO;
         expect(payload.Destinations).toHaveLength(2);
     });
 
@@ -246,7 +249,7 @@ describe('SMSApi — single-destination shorthand', () => {
             ToNumber: '+64211111111',
         });
         expect(result.Result).toBe('Success');
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as SMSApiRequestDTO;
         expect(payload.Destinations).toHaveLength(1);
         expect(payload.Destinations[0].ToNumber).toBe('+64211111111');
     });
@@ -258,7 +261,7 @@ describe('SMSApi — single-destination shorthand', () => {
             Message: 'Hi',
             ToNumber: '+64211111111, +64221111111,+64271111111',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as SMSApiRequestDTO;
         expect(payload.Destinations).toHaveLength(3);
         expect(payload.Destinations.map((d: any) => d.ToNumber)).toEqual([
             '+64211111111', '+64221111111', '+64271111111',
@@ -272,7 +275,7 @@ describe('SMSApi — single-destination shorthand', () => {
             Message: 'Hi',
             ToNumber: '+64211111111,,  ,+64221111111,',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as SMSApiRequestDTO;
         expect(payload.Destinations).toHaveLength(2);
         expect(payload.Destinations.map((d: any) => d.ToNumber)).toEqual([
             '+64211111111', '+64221111111',
@@ -286,7 +289,7 @@ describe('SMSApi — single-destination shorthand', () => {
             ToNumber: ' , , ',
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Destination/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Destination/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -298,7 +301,7 @@ describe('SMSApi — single-destination shorthand', () => {
             GroupID: '4000000b-f002-4007-b00a-c00000000005',
             ContactID: '00000000-0000-0000-0000-000000000001',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as SMSApiRequestDTO;
         expect(payload.Destinations).toHaveLength(2);
         expect(payload.Destinations[0].GroupID).toBe('4000000b-f002-4007-b00a-c00000000005');
         expect(payload.Destinations[1].ContactID).toBe('00000000-0000-0000-0000-000000000001');
@@ -312,7 +315,7 @@ describe('SMSApi — single-destination shorthand', () => {
             ToNumber: '+64211111111',
             Destinations: [{ ToNumber: '+64221111111' }],
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as SMSApiRequestDTO;
         expect(payload.Destinations).toHaveLength(2);
     });
 
@@ -323,7 +326,7 @@ describe('SMSApi — single-destination shorthand', () => {
             ToNumber: 'not-a-number',
         });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/ToNumber/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/ToNumber/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -336,10 +339,23 @@ describe('SMSApi — single-destination shorthand', () => {
             GroupID: '4000000b-f002-4007-b00a-c00000000005',
             ContactID: '00000000-0000-0000-0000-000000000001',
         });
-        const payload = httpClient.post.mock.calls[0][1] as any;
+        const payload = httpClient.post.mock.calls[0][1] as Record<string, unknown>;
         expect(payload.ToNumber).toBeUndefined();
         expect(payload.GroupID).toBeUndefined();
         expect(payload.ContactID).toBeUndefined();
+    });
+
+    it('never leaks the constructor-only URL/AuthToken/httpClient into the very first SendMessage payload', async () => {
+        // Regression test: the entity used to be constructed as `new SMSModel(args)` where
+        // `args` is the internal { URL, AuthToken, httpClient } bag, and the generic Mapper
+        // copies any own property of its source onto the destination regardless of whether
+        // the destination declares it — so the first SendMessage() call on a freshly
+        // constructed instance shipped the real bearer token in the JSON body.
+        const httpClient = makeMockHttpClient();
+        httpClient.post.mockResolvedValueOnce({ Result: 'Success', MessageID: 'msg-first1' });
+        const api = new SMSApi({ URL: BASE_URL, AuthToken: 'super-secret-token', httpClient });
+        await api.SendMessage({ Message: 'Hi', Destinations: [{ ToNumber: '+64211111111' }] });
+        expectNoLeakedConstructorArgs(httpClient.post.mock.calls[0][1] as Record<string, unknown>);
     });
 
 });

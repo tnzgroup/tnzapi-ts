@@ -1,4 +1,4 @@
-import { TNZAPI } from '../../../src';
+import { TNZAPI, ActionApiResponseDTO } from '../../../src';
 
 jest.setTimeout(15000);
 
@@ -24,7 +24,7 @@ describe('Actions Integration', () => {
     console.log('Response:', JSON.stringify(data, null, '  '));
     expect(data.Result).toMatch(/Success|Failed|Error/);
     if (data.Result === 'Success') {
-      expect((data as any).MessageID).toBeDefined();
+      expect((data as ActionApiResponseDTO).MessageID).toBeDefined();
     }
   });
 
@@ -36,7 +36,7 @@ describe('Actions Integration', () => {
     console.log('Response:', JSON.stringify(data, null, '  '));
     expect(data.Result).toMatch(/Success|Failed|Error/);
     if (data.Result === 'Success') {
-      expect((data as any).MessageID).toBeDefined();
+      expect((data as ActionApiResponseDTO).MessageID).toBeDefined();
     }
   });
 
@@ -49,7 +49,7 @@ describe('Actions Integration', () => {
     console.log('Response:', JSON.stringify(data, null, '  '));
     expect(data.Result).toMatch(/Success|Failed|Error/);
     if (data.Result === 'Success') {
-      expect((data as any).MessageID).toBeDefined();
+      expect((data as ActionApiResponseDTO).MessageID).toBeDefined();
     }
   });
 
@@ -62,7 +62,7 @@ describe('Actions Integration', () => {
     console.log('Response:', JSON.stringify(data, null, '  '));
     expect(data.Result).toMatch(/Success|Failed|Error/);
     if (data.Result === 'Success') {
-      expect((data as any).MessageID).toBeDefined();
+      expect((data as ActionApiResponseDTO).MessageID).toBeDefined();
     }
   });
 

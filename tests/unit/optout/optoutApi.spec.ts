@@ -5,6 +5,13 @@ import { OptOutDeleteApi } from '../../../src/Api/OptOut/OptOutDeleteApi';
 import { OptOut } from '../../../src/Api/OptOut';
 import { IHttpClient } from '../../../src/Common/IHttpClient';
 import { ErrorResponseDTO } from '../../../src/Common/dtos';
+import { expectNoLeakedConstructorArgs } from '../testHelpers';
+import {
+    ITNZAuthArgs,
+    IOptOutCreateArgs,
+    IOptOutDetailArgs,
+    IOptOutDeleteArgs,
+} from '../../../src';
 
 const AUTH = 'test-auth-token';
 const BASE_URL = process.env.TNZ_API_URL ?? 'https://api.tnz.co.nz/api/v3.00';
@@ -29,7 +36,7 @@ describe('OptOutListApi — validation', () => {
         const api = new OptOutListApi({ URL: BASE_URL, AuthToken: '', httpClient });
         const result = await api.Run();
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/AuthToken/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/AuthToken/i);
         expect(httpClient.get).not.toHaveBeenCalled();
     });
 
@@ -145,25 +152,25 @@ describe('OptOutCreateApi — validation', () => {
         const api = new OptOutCreateApi({ URL: BASE_URL, AuthToken: '', httpClient });
         const result = await api.Run({ Destination: DESTINATION, DestType: 'SMS' });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/AuthToken/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/AuthToken/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
     it('rejects when Destination is missing', async () => {
         const httpClient = makeMockHttpClient();
         const api = new OptOutCreateApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
-        const result = await api.Run({ DestType: 'SMS' } as any);
+        const result = await api.Run({ DestType: 'SMS' } as unknown as IOptOutCreateArgs);
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/Destination/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/Destination/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
     it('rejects when DestType is missing', async () => {
         const httpClient = makeMockHttpClient();
         const api = new OptOutCreateApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
-        const result = await api.Run({ Destination: DESTINATION } as any);
+        const result = await api.Run({ Destination: DESTINATION } as unknown as IOptOutCreateArgs);
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/DestType/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/DestType/i);
         expect(httpClient.post).not.toHaveBeenCalled();
     });
 
@@ -191,9 +198,9 @@ describe('OptOutCreateApi — validation', () => {
         });
         expect(httpClient.post).toHaveBeenCalledTimes(1);
         const [, payload] = httpClient.post.mock.calls[0];
-        expect((payload as any).ContactID).toBe('contact-1');
-        expect((payload as any).StopMessage).toBe('STOP');
-        expect((payload as any).Notes).toBe('Requested via SMS reply');
+        expect(payload.ContactID).toBe('contact-1');
+        expect(payload.StopMessage).toBe('STOP');
+        expect(payload.Notes).toBe('Requested via SMS reply');
     });
 
     it('treats HttpStatusCode 200 as success even when the server omits Result (real server behavior)', async () => {
@@ -202,6 +209,14 @@ describe('OptOutCreateApi — validation', () => {
         const api = new OptOutCreateApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
         const result = await api.Run({ Destination: DESTINATION, DestType: 'SMS' });
         expect(result).not.toBeInstanceOf(ErrorResponseDTO);
+    });
+
+    it('never leaks the constructor-only URL/AuthToken/httpClient into the very first Run payload', async () => {
+        const httpClient = makeMockHttpClient();
+        httpClient.post.mockResolvedValueOnce({ Result: 'Success' });
+        const api = new OptOutCreateApi({ URL: BASE_URL, AuthToken: 'super-secret-token', httpClient });
+        await api.Run({ Destination: DESTINATION, DestType: 'SMS' });
+        expectNoLeakedConstructorArgs(httpClient.post.mock.calls[0][1] as Record<string, unknown>);
     });
 
 });
@@ -215,16 +230,16 @@ describe('OptOutDetailApi — validation', () => {
         const api = new OptOutDetailApi({ URL: BASE_URL, AuthToken: '', httpClient });
         const result = await api.Run({ OptOutID: OPTOUT_ID });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/AuthToken/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/AuthToken/i);
         expect(httpClient.get).not.toHaveBeenCalled();
     });
 
     it('rejects when OptOutID is missing', async () => {
         const httpClient = makeMockHttpClient();
         const api = new OptOutDetailApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
-        const result = await api.Run({} as any);
+        const result = await api.Run({} as unknown as IOptOutDetailArgs);
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/OptOutID/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/OptOutID/i);
         expect(httpClient.get).not.toHaveBeenCalled();
     });
 
@@ -260,7 +275,8 @@ describe('OptOut facade — method binding', () => {
     it('List() resolves without throwing and calls the http client', async () => {
         const httpClient = makeMockHttpClient();
         httpClient.get.mockResolvedValueOnce({ Result: 'Success', OptOuts: [] });
-        const optout = new OptOut({ AuthToken: AUTH, URL: BASE_URL, httpClient } as any);
+        const optoutArgs: ITNZAuthArgs & { httpClient: IHttpClient } = { AuthToken: AUTH, URL: BASE_URL, httpClient };
+        const optout = new OptOut(optoutArgs);
         const result = await optout.List();
         expect(httpClient.get).toHaveBeenCalledTimes(1);
         expect(result.Result).toBe('Success');
@@ -269,7 +285,8 @@ describe('OptOut facade — method binding', () => {
     it('Create() resolves without throwing and calls the http client', async () => {
         const httpClient = makeMockHttpClient();
         httpClient.post.mockResolvedValueOnce({ Result: 'Success', Destination: DESTINATION, DestType: 'SMS' });
-        const optout = new OptOut({ AuthToken: AUTH, URL: BASE_URL, httpClient } as any);
+        const optoutArgs: ITNZAuthArgs & { httpClient: IHttpClient } = { AuthToken: AUTH, URL: BASE_URL, httpClient };
+        const optout = new OptOut(optoutArgs);
         const result = await optout.Create({ Destination: DESTINATION, DestType: 'SMS' });
         expect(httpClient.post).toHaveBeenCalledTimes(1);
         expect(result.Result).toBe('Success');
@@ -278,7 +295,8 @@ describe('OptOut facade — method binding', () => {
     it('Detail() resolves without throwing and calls the http client', async () => {
         const httpClient = makeMockHttpClient();
         httpClient.get.mockResolvedValueOnce({ Result: 'Success', ID: OPTOUT_ID, Destination: DESTINATION, DestType: 'SMS' });
-        const optout = new OptOut({ AuthToken: AUTH, URL: BASE_URL, httpClient } as any);
+        const optoutArgs: ITNZAuthArgs & { httpClient: IHttpClient } = { AuthToken: AUTH, URL: BASE_URL, httpClient };
+        const optout = new OptOut(optoutArgs);
         const result = await optout.Detail({ OptOutID: OPTOUT_ID });
         expect(httpClient.get).toHaveBeenCalledTimes(1);
         expect(result.Result).toBe('Success');
@@ -287,7 +305,8 @@ describe('OptOut facade — method binding', () => {
     it('Delete() resolves without throwing and calls the http client', async () => {
         const httpClient = makeMockHttpClient();
         httpClient.delete.mockResolvedValueOnce({ Result: 'Success' });
-        const optout = new OptOut({ AuthToken: AUTH, URL: BASE_URL, httpClient } as any);
+        const optoutArgs: ITNZAuthArgs & { httpClient: IHttpClient } = { AuthToken: AUTH, URL: BASE_URL, httpClient };
+        const optout = new OptOut(optoutArgs);
         const result = await optout.Delete({ OptOutID: OPTOUT_ID });
         expect(httpClient.delete).toHaveBeenCalledTimes(1);
         expect(result.Result).toBe('Success');
@@ -304,16 +323,16 @@ describe('OptOutDeleteApi — validation', () => {
         const api = new OptOutDeleteApi({ URL: BASE_URL, AuthToken: '', httpClient });
         const result = await api.Run({ OptOutID: OPTOUT_ID });
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/AuthToken/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/AuthToken/i);
         expect(httpClient.delete).not.toHaveBeenCalled();
     });
 
     it('rejects when OptOutID is missing', async () => {
         const httpClient = makeMockHttpClient();
         const api = new OptOutDeleteApi({ URL: BASE_URL, AuthToken: AUTH, httpClient });
-        const result = await api.Run({} as any);
+        const result = await api.Run({} as unknown as IOptOutDeleteArgs);
         expect(result.Result).toBe('Error');
-        expect((result as any).ErrorMessage[0]).toMatch(/OptOutID/i);
+        expect((result as ErrorResponseDTO).ErrorMessage[0]).toMatch(/OptOutID/i);
         expect(httpClient.delete).not.toHaveBeenCalled();
     });
 

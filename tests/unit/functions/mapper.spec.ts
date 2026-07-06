@@ -88,28 +88,69 @@ describe('Map', () => {
 
     });
 
+    describe('dangerous key denylist', () => {
+
+        // Regression tests for the root cause behind the constructor-args leak fixed
+        // across ~36 Api classes this session: Map() has no concept of which fields a
+        // destination class actually declares (most are `field?: string` with no
+        // default, so a fresh instance has no own properties to whitelist against), so
+        // URL/AuthToken/httpClient are denylisted directly in Map() as a shared,
+        // future-proof choke point rather than relying on every call site remembering
+        // never to pass the { URL, AuthToken, httpClient } auth/config bag in.
+
+        it('never copies URL, even onto a destination that does not already have it', () => {
+            const dest: Record<string, unknown> = { Message: '' };
+            Map(dest, { Message: 'hi', URL: 'https://api.tnz.co.nz/api/v3.00' });
+            expect(dest['URL']).toBeUndefined();
+        });
+
+        it('never copies AuthToken', () => {
+            const dest: Record<string, unknown> = {};
+            Map(dest, { AuthToken: 'super-secret-token' });
+            expect(dest['AuthToken']).toBeUndefined();
+        });
+
+        it('never copies httpClient', () => {
+            const dest: Record<string, unknown> = {};
+            const fakeClient = { get: () => {}, post: () => {} };
+            Map(dest, { httpClient: fakeClient });
+            expect(dest['httpClient']).toBeUndefined();
+        });
+
+        it('still copies every other field when URL/AuthToken/httpClient are mixed in with real data', () => {
+            const dest: Record<string, unknown> = {};
+            Map(dest, { Message: 'hi', URL: 'https://x', AuthToken: 'secret', httpClient: {}, Destinations: [{ ToNumber: '+64211111111' }] });
+            expect(dest['Message']).toBe('hi');
+            expect(dest['Destinations']).toEqual([{ ToNumber: '+64211111111' }]);
+            expect(dest['URL']).toBeUndefined();
+            expect(dest['AuthToken']).toBeUndefined();
+            expect(dest['httpClient']).toBeUndefined();
+        });
+
+    });
+
     describe('early-return guards', () => {
 
         it('returns early without throwing when data is null', () => {
             const dest = { name: 'original' };
-            expect(() => Map(dest, null as any)).not.toThrow();
+            expect(() => Map(dest, null as unknown as object)).not.toThrow();
             expect(dest.name).toBe('original');
         });
 
         it('returns early without throwing when data is undefined', () => {
             const dest = { name: 'original' };
-            expect(() => Map(dest, undefined as any)).not.toThrow();
+            expect(() => Map(dest, undefined as unknown as object)).not.toThrow();
             expect(dest.name).toBe('original');
         });
 
         it('returns early without throwing when data is an empty string', () => {
             const dest = { name: 'original' };
-            expect(() => Map(dest, '' as any)).not.toThrow();
+            expect(() => Map(dest, '' as unknown as object)).not.toThrow();
             expect(dest.name).toBe('original');
         });
 
         it('returns early without throwing when obj is null', () => {
-            expect(() => Map(null as any, { name: 'Alice' })).not.toThrow();
+            expect(() => Map(null as unknown as object, { name: 'Alice' })).not.toThrow();
         });
 
         it('does not mutate destination when data is an empty object', () => {

@@ -13,7 +13,7 @@ export class SMSApi extends BaseMessagingApi<SMSModel> {
 
     constructor(args: { URL: string; AuthToken?: string; httpClient?: IHttpClient }) {
         super(args.URL, args.AuthToken || "", args.httpClient);
-        this.entity = new SMSModel(args);
+        this.entity = new SMSModel();
     }
 
     protected createEntity(): SMSModel {

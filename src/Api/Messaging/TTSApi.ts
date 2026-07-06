@@ -13,7 +13,7 @@ export class TTSApi extends BaseMessagingApi<TTSModel> {
 
     constructor(args: { URL: string; AuthToken?: string; httpClient?: IHttpClient }) {
         super(args.URL, args.AuthToken || "", args.httpClient);
-        this.entity = new TTSModel(args);
+        this.entity = new TTSModel();
     }
 
     public async SendMessage(args?: ITTSArgs): Promise<MessagingApiSuccessResponseDTO | ErrorResponseDTO> {

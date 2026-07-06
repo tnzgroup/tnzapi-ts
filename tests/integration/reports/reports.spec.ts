@@ -1,4 +1,4 @@
-import { TNZAPI } from '../../../src';
+import { TNZAPI, StatusApiResponseDTO } from '../../../src';
 
 jest.setTimeout(15000);
 
@@ -24,7 +24,7 @@ describe('Reports Integration', () => {
     console.log('Response:', JSON.stringify(data, null, '  '));
     expect(data.Result).toMatch(/Success|Failed|Error/);
     if (data.Result === 'Success') {
-      expect((data as any).JobStatus).toBeDefined();
+      expect((data as StatusApiResponseDTO).JobStatus).toBeDefined();
     }
   });
 

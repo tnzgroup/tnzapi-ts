@@ -13,7 +13,7 @@ export class ContactGroupDeleteApi {
     constructor(args: { URL: string; AuthToken?: string }) {
         this.url = args.URL;
         this.authToken = args.AuthToken || "";
-        this.entity = new ContactGroupApiRequestDTO(args);
+        this.entity = new ContactGroupApiRequestDTO();
     }
 
     public async Run(args?: IContactGroupArgs): Promise<ContactGroupApiResponseDTO | ErrorResponseDTO> {
@@ -22,7 +22,7 @@ export class ContactGroupDeleteApi {
         }
 
         const currentEntity = this.entity;
-        this.entity = new ContactGroupApiRequestDTO({ URL: this.url, AuthToken: this.authToken });
+        this.entity = new ContactGroupApiRequestDTO(); // Reset state for next call
 
         const validation = this.validate(currentEntity);
         if (!validation.valid) {
@@ -32,7 +32,7 @@ export class ContactGroupDeleteApi {
             });
         }
 
-        const url = `${this.url}/${currentEntity.ContactID}/group/${currentEntity.GroupID ?? currentEntity.GroupCode}`;
+        const url = `${this.url}/${UsefulStuff.encodePathSegment(currentEntity.ContactID)}/group/${UsefulStuff.encodeGroupSegment(currentEntity.GroupID, currentEntity.GroupCode)}`;
 
         const responseData = await HttpRequestAsync(url, {}, this.authToken, "DELETE");
         return helpers.MapApiResponse(responseData);

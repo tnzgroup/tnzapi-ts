@@ -8,15 +8,13 @@ export class ContactApiRequestDTO extends CommonApiRequestDTO {
     constructor(data?: any) {
         super();
         if (data) {
-            const contactModelInstance = new ContactModel(data);
-            Object.assign(this, contactModelInstance);
             Map(this, data);
         }
     }
 
     toJSON() {
-        const copy = { ...this };
-        delete (copy as any).ContactID;
+        const copy = { ...this } as Record<string, unknown>;
+        delete copy.ContactID;
         return copy;
     }
 }

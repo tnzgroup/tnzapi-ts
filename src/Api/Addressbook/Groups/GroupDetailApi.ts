@@ -17,7 +17,7 @@ export class GroupDetailApi {
     constructor(args: { URL: string; AuthToken?: string; httpClient?: IHttpClient }) {
         this.url = args.URL;
         this.authToken = args.AuthToken || "";
-        this.entity = new GroupApiRequestDTO(args);
+        this.entity = new GroupApiRequestDTO();
         this.httpClient = args.httpClient ?? new NodeHttpClient(this.authToken);
     }
 
@@ -38,7 +38,7 @@ export class GroupDetailApi {
         }
 
         const group = new GroupModel(currentEntity);
-        const url = `${this.url}/${group.GroupID ?? group.GroupCode}`;
+        const url = `${this.url}/${UsefulStuff.encodeGroupSegment(group.GroupID, group.GroupCode)}`;
 
         const responseData = await this.httpClient.get(url);
         return helpers.MapApiResponse(responseData);

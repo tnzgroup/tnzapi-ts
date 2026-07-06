@@ -18,7 +18,7 @@ export class ResubmitApi {
     constructor(args: { URL: string; AuthToken?: string; httpClient?: IHttpClient }) {
         this.baseUrl = args.URL;
         this.authToken = args.AuthToken || "";
-        this.entity = new ResubmitApiRequestDTO(args);
+        this.entity = new ResubmitApiRequestDTO();
         this.httpClient = args.httpClient ?? new NodeHttpClient(this.authToken);
     }
 
@@ -28,7 +28,7 @@ export class ResubmitApi {
         }
 
         const currentEntity = this.entity;
-        this.entity = new ResubmitApiRequestDTO({ URL: this.baseUrl, AuthToken: this.authToken });
+        this.entity = new ResubmitApiRequestDTO(); // Reset state for next call
 
         const validation = this.validate(currentEntity);
         if (!validation.valid) {
@@ -38,7 +38,7 @@ export class ResubmitApi {
             });
         }
 
-        const url = `${this.baseUrl}/${currentEntity.Channel}/${currentEntity.MessageID}/resubmit`;
+        const url = `${this.baseUrl}/${UsefulStuff.encodePathSegment(currentEntity.Channel)}/${UsefulStuff.encodePathSegment(currentEntity.MessageID)}/resubmit`;
         const payload = currentEntity.SendTime ? { SendTime: currentEntity.SendTime } : {};
 
         const responseData = await this.httpClient.patch(url, payload);
