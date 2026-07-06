@@ -12,8 +12,8 @@ import { TNZAPI } from 'tnzapi-ts';
 const client = new TNZAPI({ AuthToken: process.env.TNZ_AUTH_TOKEN });
 
 const result = await client.Messaging.RCS.SendMessage({
-  Message: 'Hello [[FirstName]], your appointment is confirmed.',
-  Destinations: [{ ToNumber: '+6421000001', FirstName: 'Alice' }],
+  Message: 'Hello, your appointment is confirmed.',
+  ToNumber: '+6421000001',
 });
 
 console.log(result.MessageID);

@@ -12,8 +12,8 @@ import { TNZAPI } from 'tnzapi-ts';
 const client = new TNZAPI({ AuthToken: process.env.TNZ_AUTH_TOKEN });
 
 const result = await client.Messaging.TTS.SendMessage({
-  MessageToPeople: 'Hello [[FirstName]], this is a reminder about your appointment tomorrow.',
-  Destinations: [{ MainPhone: '+6421000001', FirstName: 'Alice' }],
+  MessageToPeople: 'Hello, this is a reminder about your appointment tomorrow.',
+  ToNumber: '+6421000001',
 });
 
 console.log(result.MessageID);

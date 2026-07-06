@@ -12,8 +12,8 @@ import { TNZAPI } from 'tnzapi-ts';
 const client = new TNZAPI({ AuthToken: process.env.TNZ_AUTH_TOKEN });
 
 const result = await client.Messaging.SMS.SendMessage({
-  Message: 'Hello [[FirstName]], your order is ready.',
-  Destinations: [{ ToNumber: '+6421000001', FirstName: 'Alice' }],
+  Message: 'Hello! Your order is ready.',
+  ToNumber: '+6421000001',
 });
 
 console.log(result.MessageID); // e.g. "P1ABCDE"
@@ -64,18 +64,6 @@ console.log(result.MessageID); // e.g. "P1ABCDE"
 
 ## Code samples
 
-### Personalised message to multiple recipients
-
-```typescript
-const result = await client.Messaging.SMS.SendMessage({
-  Message: 'Hi [[FirstName]], your appointment is on [[Custom1]].',
-  Destinations: [
-    { ToNumber: '+6421000001', FirstName: 'Alice', Custom1: 'Monday 3pm' },
-    { ToNumber: '+6421000002', FirstName: 'Bob',   Custom1: 'Tuesday 10am' },
-  ],
-});
-```
-
 ### Single recipient shorthand
 
 ```typescript
@@ -99,6 +87,18 @@ const toGroup = await client.Messaging.SMS.SendMessage({
 const toContact = await client.Messaging.SMS.SendMessage({
   Message: 'Office closed today.',
   ContactID: '8000000a-f002-4007-b00a-d00000000001',
+});
+```
+
+### Personalised message to multiple recipients
+
+```typescript
+const result = await client.Messaging.SMS.SendMessage({
+  Message: 'Hi [[FirstName]], your appointment is on [[Custom1]].',
+  Destinations: [
+    { ToNumber: '+6421000001', FirstName: 'Alice', Custom1: 'Monday 3pm' },
+    { ToNumber: '+6421000002', FirstName: 'Bob',   Custom1: 'Tuesday 10am' },
+  ],
 });
 ```
 

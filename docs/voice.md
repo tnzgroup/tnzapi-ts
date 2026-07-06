@@ -13,7 +13,7 @@ const client = new TNZAPI({ AuthToken: process.env.TNZ_AUTH_TOKEN });
 
 const result = await client.Messaging.Voice.SendMessage({
   VoiceFiles: [{ Name: 'MessageToPeople', File: '/path/to/message.wav' }],
-  Destinations: [{ MainPhone: '+6421000001' }],
+  ToNumber: '+6421000001',
 });
 
 console.log(result.MessageID);

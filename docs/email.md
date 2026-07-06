@@ -13,9 +13,9 @@ const client = new TNZAPI({ AuthToken: process.env.TNZ_AUTH_TOKEN });
 
 const result = await client.Messaging.Email.SendMessage({
   EmailSubject: 'Your order has shipped',
-  MessagePlain: 'Hi [[FirstName]], your order is on its way.',
-  MessageHTML: '<p>Hi [[FirstName]], your order is on its way.</p>',
-  Destinations: [{ EmailAddress: 'alice@example.com', FirstName: 'Alice' }],
+  MessagePlain: 'Your order is on its way.',
+  MessageHTML: '<p>Your order is on its way.</p>',
+  EmailAddress: 'alice@example.com',
 });
 
 console.log(result.MessageID);

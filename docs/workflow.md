@@ -13,7 +13,7 @@ const client = new TNZAPI({ AuthToken: process.env.TNZ_AUTH_TOKEN });
 
 const result = await client.Messaging.Workflow.SendMessage({
   WorkflowTemplateID: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
-  Destinations: [{ ContactID: '8000000a-f002-4007-b00a-d00000000001' }],
+  ContactID: '8000000a-f002-4007-b00a-d00000000001',
 });
 
 console.log(result.MessageID);
@@ -61,15 +61,6 @@ Destinations can reference existing addressbook contacts/groups, or specify a ne
 
 ## Code samples
 
-### Trigger for a single contact
-
-```typescript
-const result = await client.Messaging.Workflow.SendMessage({
-  WorkflowTemplateID: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
-  Destinations: [{ ContactID: '8000000a-f002-4007-b00a-d00000000001' }],
-});
-```
-
 ### Single target shorthand
 
 ```typescript
@@ -95,6 +86,18 @@ const combined = await client.Messaging.Workflow.SendMessage({
 ```
 
 > **Note:** `ToNumber`/`MainPhone` shorthand resolves internally to the same `Destinations: [{ ToNumber: ... }]` / `[{ MainPhone: ... }]` shape as writing the array by hand — so using either without a `ContactID`/`GroupID` creates a new addressbook contact for that recipient, or updates a matching existing one if a contact with that phone/email already exists, exactly like the inline destination fields below. `EmailAddress` is not available as a top-level shorthand for Workflow (only `ToNumber`/`MainPhone`/`GroupID`/`ContactID` are) — it only works inside the `Destinations` array, as shown next.
+
+### Multiple recipients
+
+```typescript
+const result = await client.Messaging.Workflow.SendMessage({
+  WorkflowTemplateID: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+  Destinations: [
+    { ContactID: '8000000a-f002-4007-b00a-d00000000001' },
+    { ContactID: '8000000a-f002-4007-b00a-d00000000002' },
+  ],
+});
+```
 
 ### Inline new contact (auto-created or updated in addressbook)
 

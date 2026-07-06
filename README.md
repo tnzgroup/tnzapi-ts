@@ -186,10 +186,7 @@ const client = new TNZAPI();
 // Send an SMS
 const result = await client.Messaging.SMS.SendMessage({
     Message: "Hello from tnzapi-ts!",
-    Destinations: [
-        { ToNumber: "+64211234567" },
-        { ToNumber: "+64251234567" }
-    ]
+    ToNumber: "+64211234567"
 });
 
 console.log(result.Result);    // "Success"
@@ -244,10 +241,7 @@ const client = new TNZAPI();
 
 const result = await client.Messaging.SMS.SendMessage({
     Message: "Hello! Your code is 1234.",
-    Destinations: [
-        { ToNumber: "+64211234567" },
-        { ToNumber: "+64221234567" }
-    ]
+    ToNumber: "+64211234567"
 });
 
 console.log(result.MessageID); // Track this for status reports
@@ -267,11 +261,29 @@ console.log(result.MessageID); // Track this for status reports
 | `SMSEmailReply` | `string` | Email to receive SMS replies |
 | `CharacterConversion` | `boolean` | Convert non-GSM characters |
 
-**Single-recipient shorthand:**
+**Multiple recipients:**
 ```typescript
 const result = await client.Messaging.SMS.SendMessage({
     Message: "Hello! Your code is 1234.",
-    ToNumber: "+64211234567"
+    Destinations: [
+        { ToNumber: "+64211234567" },
+        { ToNumber: "+64221234567" }
+    ]
+});
+```
+
+**Single-group / single-contact shorthand:**
+```typescript
+// Send to everyone in an addressbook group
+const result = await client.Messaging.SMS.SendMessage({
+    Message: "Hello! Your code is 1234.",
+    GroupID: "11111111-2222-3333-4444-555555555555"
+});
+
+// Send to a specific addressbook contact
+const result2 = await client.Messaging.SMS.SendMessage({
+    Message: "Hello! Your code is 1234.",
+    ContactID: "cc5c3871-0d29-11f1-95bd-ae5f86698b98"
 });
 ```
 
@@ -320,10 +332,7 @@ const result = await client.Messaging.Email.SendMessage({
     FromEmail: "noreply@yourcompany.com",
     EmailSubject: "Your monthly statement",
     MessagePlain: "Please find your statement attached.",
-    Destinations: [
-        { EmailAddress: "alice@example.com" },
-        { EmailAddress: "bob@example.com" }
-    ]
+    EmailAddress: "alice@example.com"
 });
 ```
 
@@ -347,12 +356,33 @@ const result = await client.Messaging.Email.SendMessage({
 | `BCCEmail` | `string` | BCC email address |
 | `Attachments` | `string[]` | Paths to local files to attach |
 
-**Single-recipient shorthand:**
+**Multiple recipients:**
 ```typescript
+const result = await client.Messaging.Email.SendMessage({
+    FromEmail: "noreply@yourcompany.com",
+    EmailSubject: "Your monthly statement",
+    MessagePlain: "Please find your statement attached.",
+    Destinations: [
+        { EmailAddress: "alice@example.com" },
+        { EmailAddress: "bob@example.com" }
+    ]
+});
+```
+
+**Single-group / single-contact shorthand:**
+```typescript
+// Send to everyone in an addressbook group
 const result = await client.Messaging.Email.SendMessage({
     EmailSubject: "Your monthly statement",
     MessagePlain: "Please find your statement attached.",
-    EmailAddress: "customer@example.com"
+    GroupID: "11111111-2222-3333-4444-555555555555"
+});
+
+// Send to a specific addressbook contact
+const result2 = await client.Messaging.Email.SendMessage({
+    EmailSubject: "Your monthly statement",
+    MessagePlain: "Please find your statement attached.",
+    ContactID: "cc5c3871-0d29-11f1-95bd-ae5f86698b98"
 });
 ```
 
@@ -383,10 +413,7 @@ import { TNZAPI } from 'tnzapi-ts';
 const client = new TNZAPI();
 
 const result = await client.Messaging.Fax.SendMessage({
-    Destinations: [
-        { ToNumber: "+6491234567" },
-        { ToNumber: "+6492345678" }
-    ],
+    ToNumber: "+6491234567",
     Attachments: ["/path/to/document.pdf"]
 });
 ```
@@ -410,10 +437,28 @@ const result = await client.Messaging.Fax.SendMessage({
 | `WatermarkFirstPage` | `string` | Watermark file applied to first page |
 | `WatermarkAllPages` | `string` | Watermark file applied to all pages |
 
-**Single-recipient shorthand:**
+**Multiple recipients:**
 ```typescript
 const result = await client.Messaging.Fax.SendMessage({
-    ToNumber: "+6491234567",
+    Destinations: [
+        { ToNumber: "+6491234567" },
+        { ToNumber: "+6492345678" }
+    ],
+    Attachments: ["/path/to/document.pdf"]
+});
+```
+
+**Single-group / single-contact shorthand:**
+```typescript
+// Send to everyone in an addressbook group
+const result = await client.Messaging.Fax.SendMessage({
+    GroupID: "11111111-2222-3333-4444-555555555555",
+    Attachments: ["/path/to/document.pdf"]
+});
+
+// Send to a specific addressbook contact
+const result2 = await client.Messaging.Fax.SendMessage({
+    ContactID: "cc5c3871-0d29-11f1-95bd-ae5f86698b98",
     Attachments: ["/path/to/document.pdf"]
 });
 ```
@@ -450,10 +495,7 @@ const client = new TNZAPI();
 
 const result = await client.Messaging.TTS.SendMessage({
     MessageToPeople: "Hello, this is a reminder that your appointment is tomorrow at 9am. Press 1 to confirm.",
-    Destinations: [
-        { MainPhone: "+64211234567" },
-        { MainPhone: "+64221234567" }
-    ]
+    ToNumber: "+64211234567"
 });
 ```
 
@@ -479,11 +521,29 @@ const result = await client.Messaging.TTS.SendMessage({
 | `Options` | `string` | Additional call options (raw passthrough) |
 | `Keypads` | `ITTSKeypad[]` | IVR keypad routing options |
 
-**Single-recipient shorthand:**
+**Multiple recipients:**
 ```typescript
 const result = await client.Messaging.TTS.SendMessage({
+    MessageToPeople: "Hello, this is a reminder that your appointment is tomorrow at 9am. Press 1 to confirm.",
+    Destinations: [
+        { MainPhone: "+64211234567" },
+        { MainPhone: "+64221234567" }
+    ]
+});
+```
+
+**Single-group / single-contact shorthand:**
+```typescript
+// Call everyone in an addressbook group
+const result = await client.Messaging.TTS.SendMessage({
     MessageToPeople: "Hello, this is a reminder about your appointment tomorrow at 9am.",
-    ToNumber: "+64211234567"
+    GroupID: "11111111-2222-3333-4444-555555555555"
+});
+
+// Call a specific addressbook contact
+const result2 = await client.Messaging.TTS.SendMessage({
+    MessageToPeople: "Hello, this is a reminder about your appointment tomorrow at 9am.",
+    ContactID: "cc5c3871-0d29-11f1-95bd-ae5f86698b98"
 });
 ```
 
@@ -524,10 +584,7 @@ import { TNZAPI } from 'tnzapi-ts';
 const client = new TNZAPI();
 
 const result = await client.Messaging.Voice.SendMessage({
-    Destinations: [
-        { MainPhone: "+64221234567" },
-        { MainPhone: "+64281234567" }
-    ],
+    ToNumber: "+64221234567",
     VoiceFiles: [
         {
             Name: "MessageToPeople",       // Which part of the call this file plays for
@@ -559,10 +616,32 @@ const result = await client.Messaging.Voice.SendMessage({
 | `Options` | `string` | Additional call options (raw passthrough) |
 | `Keypads` | `IVoiceKeypad[]` | IVR keypad options (can include audio `File`) |
 
-**Single-recipient shorthand:**
+**Multiple recipients:**
 ```typescript
 const result = await client.Messaging.Voice.SendMessage({
-    ToNumber: "+64211234567",
+    Destinations: [
+        { MainPhone: "+64221234567" },
+        { MainPhone: "+64281234567" }
+    ],
+    VoiceFiles: [
+        { Name: "MessageToPeople", File: "/path/to/message.wav" }
+    ]
+});
+```
+
+**Single-group / single-contact shorthand:**
+```typescript
+// Call everyone in an addressbook group
+const result = await client.Messaging.Voice.SendMessage({
+    GroupID: "11111111-2222-3333-4444-555555555555",
+    VoiceFiles: [
+        { Name: "MessageToPeople", File: "/path/to/message.wav" }
+    ]
+});
+
+// Call a specific addressbook contact
+const result2 = await client.Messaging.Voice.SendMessage({
+    ContactID: "cc5c3871-0d29-11f1-95bd-ae5f86698b98",
     VoiceFiles: [
         { Name: "MessageToPeople", File: "/path/to/message.wav" }
     ]
@@ -600,10 +679,7 @@ const client = new TNZAPI();
 
 const result = await client.Messaging.WhatsApp.SendMessage({
     Message: "Hello! Your order has been dispatched.",
-    Destinations: [
-        { ToNumber: "+64221234568" },
-        { ToNumber: "+64211234567" }
-    ]
+    ToNumber: "+64221234568"
 });
 ```
 
@@ -622,11 +698,29 @@ const result = await client.Messaging.WhatsApp.SendMessage({
 | `ReportTo` | `string` | Email address to receive delivery reports |
 | `Attachments` | `string[]` | Paths to local media files to attach |
 
-**Single-recipient shorthand:**
+**Multiple recipients:**
 ```typescript
 const result = await client.Messaging.WhatsApp.SendMessage({
     Message: "Hello! Your order has been dispatched.",
-    ToNumber: "+64211234567"
+    Destinations: [
+        { ToNumber: "+64221234568" },
+        { ToNumber: "+64211234567" }
+    ]
+});
+```
+
+**Single-group / single-contact shorthand:**
+```typescript
+// Send to everyone in an addressbook group
+const result = await client.Messaging.WhatsApp.SendMessage({
+    Message: "Hello! Your order has been dispatched.",
+    GroupID: "11111111-2222-3333-4444-555555555555"
+});
+
+// Send to a specific addressbook contact
+const result2 = await client.Messaging.WhatsApp.SendMessage({
+    Message: "Hello! Your order has been dispatched.",
+    ContactID: "cc5c3871-0d29-11f1-95bd-ae5f86698b98"
 });
 ```
 
@@ -642,11 +736,8 @@ import { TNZAPI } from 'tnzapi-ts';
 const client = new TNZAPI();
 
 const result = await client.Messaging.RCS.SendMessage({
-    Message: "Hello [[FirstName]], your appointment is confirmed.",
-    Destinations: [
-        { ToNumber: "+6421000001", FirstName: "Alice" },
-        { ToNumber: "+6421000002", FirstName: "Bob" }
-    ]
+    Message: "Hello, your appointment is confirmed.",
+    ToNumber: "+6421000001"
 });
 ```
 
@@ -663,11 +754,29 @@ const result = await client.Messaging.RCS.SendMessage({
 | `ContactID` | `string` | Single-contact shorthand (alternative to `Destinations`); comma-separated for multiple |
 | `FromNumber` | `string` | Sender ID or number |
 
-**Single-recipient shorthand:**
+**Multiple recipients with personalization:**
 ```typescript
 const result = await client.Messaging.RCS.SendMessage({
+    Message: "Hello [[FirstName]], your appointment is confirmed.",
+    Destinations: [
+        { ToNumber: "+6421000001", FirstName: "Alice" },
+        { ToNumber: "+6421000002", FirstName: "Bob" }
+    ]
+});
+```
+
+**Single-group / single-contact shorthand:**
+```typescript
+// Send to everyone in an addressbook group
+const result = await client.Messaging.RCS.SendMessage({
     Message: "Hello, your appointment is confirmed.",
-    ToNumber: "+6421000001"
+    GroupID: "11111111-2222-3333-4444-555555555555"
+});
+
+// Send to a specific addressbook contact
+const result2 = await client.Messaging.RCS.SendMessage({
+    Message: "Hello, your appointment is confirmed.",
+    ContactID: "cc5c3871-0d29-11f1-95bd-ae5f86698b98"
 });
 ```
 
@@ -686,10 +795,7 @@ const client = new TNZAPI();
 
 const result = await client.Messaging.Workflow.SendMessage({
     WorkflowTemplateID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-    Destinations: [
-        { ContactID: "cc5c3871-0d29-11f1-95bd-ae5f86698b98" },
-        { ContactID: "8000000a-f002-4007-b00a-d00000000002" }
-    ]
+    ContactID: "cc5c3871-0d29-11f1-95bd-ae5f86698b98"
 });
 ```
 
@@ -706,11 +812,38 @@ const result = await client.Messaging.Workflow.SendMessage({
 
 > **Note:** Inline destinations (`ToNumber`, `EmailAddress`, `MainPhone`) automatically create a new addressbook entry for the recipient, or update a matching existing one if a contact with that phone/email already exists in your addressbook. This also applies to the top-level `ToNumber`/`MainPhone` shorthand fields above — they resolve internally to exactly the same `Destinations: [{ ToNumber: ... }]` / `[{ MainPhone: ... }]` shape, so sending a Workflow request via shorthand without a `ContactID`/`GroupID` will create-or-update an addressbook contact, the same as writing out the `Destinations` array by hand. (`EmailAddress` is not available as a top-level shorthand for Workflow — only inside `Destinations`.)
 
-**Single-recipient shorthand:**
+**Multiple recipients:**
 ```typescript
 const result = await client.Messaging.Workflow.SendMessage({
     WorkflowTemplateID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-    ContactID: "cc5c3871-0d29-11f1-95bd-ae5f86698b98"
+    Destinations: [
+        { ContactID: "cc5c3871-0d29-11f1-95bd-ae5f86698b98" },
+        { ContactID: "8000000a-f002-4007-b00a-d00000000002" }
+    ]
+});
+```
+
+**Single-group shorthand:**
+```typescript
+// Send to everyone in an addressbook group
+const result = await client.Messaging.Workflow.SendMessage({
+    WorkflowTemplateID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    GroupID: "11111111-2222-3333-4444-555555555555"
+});
+```
+
+**Inline recipient shorthand (creates/updates an addressbook contact):**
+```typescript
+// ToNumber and MainPhone are independent shorthand fields — use whichever
+// matches how the recipient is reached; both create-or-update a contact.
+const result = await client.Messaging.Workflow.SendMessage({
+    WorkflowTemplateID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    ToNumber: "+64211234567"
+});
+
+const result2 = await client.Messaging.Workflow.SendMessage({
+    WorkflowTemplateID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    MainPhone: "+64211234567"
 });
 ```
 

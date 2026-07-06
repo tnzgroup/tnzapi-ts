@@ -14,7 +14,7 @@ const client = new TNZAPI({ AuthToken: process.env.TNZ_AUTH_TOKEN });
 
 const result = await client.Messaging.Fax.SendMessage({
   Attachments: [path.join(__dirname, 'document.pdf')],
-  Destinations: [{ ToNumber: '+6491000001' }],
+  ToNumber: '+6491000001',
 });
 
 console.log(result.MessageID);
