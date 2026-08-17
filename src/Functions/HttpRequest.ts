@@ -88,7 +88,7 @@ export const HttpRequest = (url: string, payload: any, authToken: string, method
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'Authorization': !isEmpty(authToken) ? `Bearer ${authToken}` : "",
-        'User-Agent': 'tnzapi-nodejs-ts/3.00'
+        'User-Agent': 'tnzapi-ts/3.00'
     };
 
     if (!isGet) {
