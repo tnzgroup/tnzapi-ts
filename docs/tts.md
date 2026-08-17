@@ -161,7 +161,7 @@ const result = await client.Messaging.TTS.SendMessage({
 const result = await client.Messaging.TTS.SendMessage({
   MessageToPeople: 'Staff meeting at 2pm today in the main boardroom.',
   Destinations: [{ GroupID: '4000000b-f002-4007-b00a-c00000000002' }],
-  SendTime: '2027-01-01T08:00:00',
+  SendTime: '2027-01-01 08:00:00',
   Timezone: 'New Zealand',
 });
 ```

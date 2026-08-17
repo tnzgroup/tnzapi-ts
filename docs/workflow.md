@@ -123,7 +123,7 @@ const result = await client.Messaging.Workflow.SendMessage({
     { ContactID: '8000000a-f002-4007-b00a-d00000000002' },
     { ContactID: '8000000a-f002-4007-b00a-d00000000003' },
   ],
-  SendTime: '2027-01-01T09:00:00',
+  SendTime: '2027-01-01 09:00:00',
   Timezone: 'New Zealand',
 });
 ```

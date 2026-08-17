@@ -119,7 +119,7 @@ import { WebhookCallbackFormat } from 'tnzapi-ts';
 const result = await client.Messaging.SMS.SendMessage({
   Message: 'Your reminder.',
   Destinations: [{ ToNumber: '+6421000001' }],
-  SendTime: '2027-01-01T09:00:00',
+  SendTime: '2027-01-01 09:00:00',
   Timezone: 'New Zealand',
   WebhookCallbackURL: 'https://yourapp.example.com/webhooks/sms',
   WebhookCallbackFormat: WebhookCallbackFormat.JSON,

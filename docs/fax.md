@@ -124,7 +124,7 @@ const result = await client.Messaging.Fax.SendMessage({
     { ToNumber: '+6491000001', Company: 'Acme Ltd' },
     { ToNumber: '+6491000002', Company: 'Globex Corp' },
   ],
-  SendTime: '2027-01-01T09:00:00',
+  SendTime: '2027-01-01 09:00:00',
   Timezone: 'New Zealand',
   WebhookCallbackURL: 'https://yourapp.example.com/webhooks/fax',
   WebhookCallbackFormat: WebhookCallbackFormat.JSON,

@@ -158,7 +158,7 @@ const result = await client.Messaging.Voice.SendMessage({
   VoiceFiles: [{ Name: 'MessageToPeople', File: '/audio/staff-notice.wav' }],
   Destinations: [{ GroupID: '4000000b-f002-4007-b00a-c00000000002' }],
   NumberOfOperators: 1,
-  SendTime: '2027-01-01T08:00:00',
+  SendTime: '2027-01-01 08:00:00',
   Timezone: 'New Zealand',
 });
 ```

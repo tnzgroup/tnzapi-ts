@@ -39,7 +39,7 @@ async function sendRCSShorthand() {
     const scheduled = await client.Messaging.RCS.SendMessage({
         Message: 'Staff meeting at 9am today.',
         Destinations: [{ GroupID: '4000000b-f002-4007-b00a-c00000000003' }],
-        SendTime: '2027-01-01T09:00:00',
+        SendTime: '2027-01-01 09:00:00',
         Timezone: 'New Zealand',
     });
     if (!(scheduled instanceof ErrorResponseDTO)) console.log(scheduled.MessageID);

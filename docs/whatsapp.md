@@ -126,7 +126,7 @@ const result = await client.Messaging.WhatsApp.SendMessage({
   Message: 'Office closed today.',
   Destinations: [{ GroupID: '4000000b-f002-4007-b00a-c00000000003' }],
   FromNumber: '+6491234567',
-  SendTime: '2027-01-01T07:00:00',
+  SendTime: '2027-01-01 07:00:00',
   Timezone: 'New Zealand',
 });
 ```

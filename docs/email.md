@@ -139,7 +139,7 @@ const result = await client.Messaging.Email.SendMessage({
   EmailSubject: 'Hello [[FirstName]]',
   MessageHTML: '<p>Hi [[FirstName]], welcome to [[Company]]!</p>',
   Destinations: [{ GroupID: '4000000b-f002-4007-b00a-c00000000002' }],
-  SendTime: '2027-01-01T08:00:00',
+  SendTime: '2027-01-01 08:00:00',
   Timezone: 'New Zealand',
   WebhookCallbackURL: 'https://yourapp.example.com/webhooks/email',
   WebhookCallbackFormat: WebhookCallbackFormat.JSON,
