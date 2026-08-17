@@ -49,4 +49,7 @@ export enum WhatsAppFallbackMode {
 
 export enum RCSFallbackMode {
     None = 'None',
+    SMS = 'SMS',
+    Voice = 'Voice',
+    WAPP = 'WAPP',
 }

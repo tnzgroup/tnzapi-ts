@@ -1,6 +1,6 @@
 {
   "name": "tnzapi-ts",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "TypeScript Library for TNZ Group REST API v3.00 — SMS, Email, Fax, TTS, Voice, WhatsApp, Workflow, Addressbook, Opt-Out",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

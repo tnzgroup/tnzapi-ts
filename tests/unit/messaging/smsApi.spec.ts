@@ -162,6 +162,31 @@ describe('SMSApi — validation', () => {
         expect(payload.NotificationType).toBe('Webhook');
     });
 
+    it('joins a multi-value FallbackMode into a comma-separated string in payload', async () => {
+        const { api, httpClient } = makeApi();
+        httpClient.post.mockResolvedValueOnce({ Result: 'Success', MessageID: 'msg003' });
+        await api.SendMessage({
+            Message: 'Hi',
+            Destinations: [{ ToNumber: '+64211111111' }],
+            FallbackMode: [SMSFallbackMode.Voice, SMSFallbackMode.WAPP],
+        });
+        expect(httpClient.post).toHaveBeenCalledTimes(1);
+        const payload = httpClient.post.mock.calls[0][1] as SMSApiRequestDTO;
+        expect(payload.FallbackMode).toBe('Voice, WAPP');
+    });
+
+    it('omits FallbackMode from payload entirely when given an empty array, rather than sending an empty string', async () => {
+        const { api, httpClient } = makeApi();
+        httpClient.post.mockResolvedValueOnce({ Result: 'Success', MessageID: 'msg004' });
+        await api.SendMessage({
+            Message: 'Hi',
+            Destinations: [{ ToNumber: '+64211111111' }],
+            FallbackMode: [],
+        });
+        const payload = httpClient.post.mock.calls[0][1] as SMSApiRequestDTO;
+        expect(payload.FallbackMode).toBeUndefined();
+    });
+
     it('sends inline destination personalisation fields in payload', async () => {
         const { api, httpClient } = makeApi();
         httpClient.post.mockResolvedValueOnce({ Result: 'Success', MessageID: 'msg003' });

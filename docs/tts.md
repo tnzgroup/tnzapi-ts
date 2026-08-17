@@ -190,4 +190,4 @@ const result = await client.Messaging.TTS.SendMessage({
 
 - [README — TTS](../README.md#tts-text-to-speech)
 - [TypeScript interface source](../src/Api/Messaging/interfaces/ITTSArgs.ts)
-- [More examples](../examples/messaging/send-tts.ts)
+- [More examples](../samples/messaging/send-tts.ts)

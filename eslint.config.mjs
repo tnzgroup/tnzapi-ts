@@ -4,7 +4,10 @@ import globals from 'globals';
 
 export default tseslint.config(
     {
-        ignores: ['dist/**', 'node_modules/**', 'coverage/**'],
+        // demo/**: a separate self-contained app (own package.json, own
+        // eslint.config.mjs, own dependency versions) nested inside this repo
+        // for co-location, not part of the SDK — not linted by the SDK's config.
+        ignores: ['dist/**', 'node_modules/**', 'coverage/**', 'demo/**'],
     },
     js.configs.recommended,
     ...tseslint.configs.recommended,
@@ -56,11 +59,11 @@ export default tseslint.config(
         },
     },
     {
-        // examples/**: each file exposes several named functions as copy-paste
+        // samples/**: each file exposes several named functions as copy-paste
         // reference snippets (documentation, run via `npx ts-node`) — only a
         // couple are actually invoked at the bottom of each file by design, so
         // "unused function" isn't a real issue here the way it would be in src/.
-        files: ['examples/**/*.ts'],
+        files: ['samples/**/*.ts'],
         rules: {
             '@typescript-eslint/no-unused-vars': 'off',
             // Pagination loop variables (e.g. `let totalPages = 1`) are initialized
@@ -76,7 +79,7 @@ export default tseslint.config(
         // there's no ES import/dynamic import() equivalent that works within
         // that boundary. Same underlying reason *.js config files are exempt
         // above, just needed here from a .ts test helper instead.
-        files: ['tests/unit/examples/isolateAndRequire.ts'],
+        files: ['tests/unit/samples/isolateAndRequire.ts'],
         rules: {
             '@typescript-eslint/no-require-imports': 'off',
         },

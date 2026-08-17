@@ -187,4 +187,4 @@ const result = await client.Messaging.Voice.SendMessage({
 
 - [README — Voice](../README.md#voice)
 - [TypeScript interface source](../src/Api/Messaging/interfaces/IVoiceArgs.ts)
-- [More examples](../examples/messaging/send-voice.ts)
+- [More examples](../samples/messaging/send-voice.ts)

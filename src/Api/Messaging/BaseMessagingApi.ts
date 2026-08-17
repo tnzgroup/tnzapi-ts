@@ -56,6 +56,15 @@ export abstract class BaseMessagingApi<T extends IMessagingModel> {
             Map(this.entity, args);
         }
 
+        // FallbackMode (SMS/WhatsApp/RCS only — most channels don't declare this field at all,
+        // hence the type guard rather than an abstract hook every channel would need to
+        // implement identically) may have just been mapped on as an array — join it into TNZ's
+        // real comma-separated wire format here, once, instead of in every channel's own
+        // SendMessage() override.
+        if (helpers.hasFallbackMode(this.entity) && Array.isArray(this.entity.FallbackMode)) {
+            this.entity.FallbackMode = helpers.JoinFallbackMode(this.entity.FallbackMode);
+        }
+
         const currentEntity = this.entity;
         const missingAttachments = this.missingAttachments;
         this.entity = this.createEntity(); // Reset state for next call

@@ -25,7 +25,7 @@ export interface IRCSArgs {
     Reference?: string;
     Message?: string;
     TemplateID?: string;
-    FallbackMode?: RCSFallbackMode;
+    FallbackMode?: RCSFallbackMode | RCSFallbackMode[];
     FromNumber?: string;
     Destinations?: IRCSDestination[];
     ToNumber?: string;

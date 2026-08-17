@@ -25,7 +25,7 @@ export interface IWhatsAppArgs {
     Reference?: string;
     Message?: string;
     TemplateID?: string;
-    FallbackMode?: WhatsAppFallbackMode;
+    FallbackMode?: WhatsAppFallbackMode | WhatsAppFallbackMode[];
     FromNumber?: string;
     Destinations?: IWhatsAppDestination[];
     ToNumber?: string;

@@ -146,4 +146,4 @@ const result = await msg.SendMessage({
 
 - [README — RCS](../README.md#send-rcs-message)
 - [TypeScript interface source](../src/Api/Messaging/interfaces/IRCSArgs.ts)
-- [More examples](../examples/messaging/send-rcs.ts)
+- [More examples](../samples/messaging/send-rcs.ts)

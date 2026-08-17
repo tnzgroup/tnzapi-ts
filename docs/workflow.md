@@ -158,4 +158,4 @@ const result = await client.Messaging.Workflow.SendMessage({
 
 - [README — Workflow](../README.md#workflow)
 - [TypeScript interface source](../src/Api/Messaging/interfaces/IWorkflowArgs.ts)
-- [More examples](../examples/messaging/send-workflow.ts)
+- [More examples](../samples/messaging/send-workflow.ts)

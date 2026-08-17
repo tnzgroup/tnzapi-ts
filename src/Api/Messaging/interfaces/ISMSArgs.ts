@@ -44,7 +44,7 @@ export interface ISMSArgs {
     NotificationType?: NotificationType;
     Mode?: 'Test';
     Attachments?: string[];
-    FallbackMode?: SMSFallbackMode;
+    FallbackMode?: SMSFallbackMode | SMSFallbackMode[];
     SMSEmailReply?: string;
     CharacterConversion?: boolean;
 }

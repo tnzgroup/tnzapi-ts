@@ -93,6 +93,18 @@ describe('WhatsAppApi — validation', () => {
         expect(payload.FallbackMode).toBe('SMS');
     });
 
+    it('joins a multi-value FallbackMode into a comma-separated string in payload', async () => {
+        const { api, httpClient } = makeApi();
+        httpClient.post.mockResolvedValueOnce({ Result: 'Success', MessageID: 'wa003' });
+        await api.SendMessage({
+            Message: 'Hi',
+            Destinations: [{ ToNumber: '+64211111111' }],
+            FallbackMode: [WhatsAppFallbackMode.SMS, WhatsAppFallbackMode.Voice],
+        });
+        const payload = httpClient.post.mock.calls[0][1];
+        expect(payload.FallbackMode).toBe('SMS, Voice');
+    });
+
     it('sends Message (not MessageText) in payload', async () => {
         const { api, httpClient } = makeApi();
         httpClient.post.mockResolvedValueOnce({ Result: 'Success', MessageID: 'wa002' });

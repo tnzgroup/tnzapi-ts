@@ -172,6 +172,20 @@ describe('EmailApi — validation', () => {
         expect(url).toContain('/email');
     });
 
+    // Email has no FallbackMode field at all (unlike SMS/WhatsApp/RCS) — BaseMessagingApi.
+    // SendMessage()'s shared FallbackMode-joining step must be a silent no-op here, not add a
+    // stray FallbackMode property to the outbound payload.
+    it('never adds a FallbackMode field to the payload — Email has no such field', async () => {
+        const { api, httpClient } = makeApi();
+        httpClient.post.mockResolvedValueOnce({ Result: 'Success', MessageID: 'e003' });
+        await api.SendMessage({
+            EmailSubject: 'Hi', MessagePlain: 'body',
+            Destinations: [{ EmailAddress: 'user@example.com' }],
+        });
+        const payload = httpClient.post.mock.calls[0][1] as Record<string, unknown>;
+        expect(payload).not.toHaveProperty('FallbackMode');
+    });
+
 });
 
 describe('EmailApi — single-destination shorthand', () => {

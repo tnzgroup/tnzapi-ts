@@ -257,7 +257,7 @@ console.log(result.MessageID); // Track this for status reports
 | `ToNumber` | `string` | Single-recipient shorthand (alternative to `Destinations`); comma-separated for multiple |
 | `GroupID` | `string` | Single-group shorthand (alternative to `Destinations`); comma-separated for multiple |
 | `ContactID` | `string` | Single-contact shorthand (alternative to `Destinations`); comma-separated for multiple |
-| `FallbackMode` | `SMSFallbackMode` | Fallback channel (`None`, `RCS`, `WAPP`, `Voice`) |
+| `FallbackMode` | `SMSFallbackMode \| SMSFallbackMode[]` | Fallback channel(s), tried in order if delivery fails (`None`, `RCS`, `WAPP`, `Voice`) — pass an array to try more than one |
 | `SMSEmailReply` | `string` | Email to receive SMS replies |
 | `CharacterConversion` | `boolean` | Convert non-GSM characters |
 
@@ -689,7 +689,7 @@ const result = await client.Messaging.WhatsApp.SendMessage({
 |-----------|------|-------------|
 | `Message` | `string` | Plain-text message body (required unless `TemplateID` set) |
 | `TemplateID` | `string (uuid)` | Pre-approved WhatsApp template ID |
-| `FallbackMode` | `WhatsAppFallbackMode` | Fallback channel if WhatsApp fails (`None`, `RCS`, `SMS`, `Voice`) |
+| `FallbackMode` | `WhatsAppFallbackMode \| WhatsAppFallbackMode[]` | Fallback channel(s) if WhatsApp fails, tried in order (`None`, `RCS`, `SMS`, `Voice`) — pass an array to try more than one |
 | `Destinations` | `IWhatsAppDestination[]` | **Required.** WhatsApp-registered numbers |
 | `ToNumber` | `string` | Single-recipient shorthand (alternative to `Destinations`); comma-separated for multiple |
 | `GroupID` | `string` | Single-group shorthand (alternative to `Destinations`); comma-separated for multiple |
@@ -747,7 +747,7 @@ const result = await client.Messaging.RCS.SendMessage({
 |-----------|------|-------------|
 | `Message` | `string` | Message body (required unless `TemplateID` set) |
 | `TemplateID` | `string (uuid)` | Pre-configured template ID |
-| `FallbackMode` | `RCSFallbackMode` | Fallback channel if RCS unavailable (`None`) |
+| `FallbackMode` | `RCSFallbackMode \| RCSFallbackMode[]` | Fallback channel(s) if RCS unavailable, tried in order (`None`, `SMS`, `Voice`, `WAPP`) — pass an array to try more than one |
 | `Destinations` | `IRCSDestination[]` | **Required.** Recipients with mobile numbers |
 | `ToNumber` | `string` | Single-recipient shorthand (alternative to `Destinations`); comma-separated for multiple |
 | `GroupID` | `string` | Single-group shorthand (alternative to `Destinations`); comma-separated for multiple |
@@ -1680,7 +1680,7 @@ import {
     FaxResolution,           // Low | High
     SMSFallbackMode,         // None | RCS | WAPP | Voice
     WhatsAppFallbackMode,    // None | RCS | SMS | Voice
-    RCSFallbackMode,         // None
+    RCSFallbackMode,         // None | SMS | Voice | WAPP
 } from 'tnzapi-ts';
 ```
 
@@ -1705,7 +1705,7 @@ interface ISMSArgs {
     Reference?: string;
     Message?: string;           // required unless TemplateID is set
     TemplateID?: string;
-    FallbackMode?: SMSFallbackMode;
+    FallbackMode?: SMSFallbackMode | SMSFallbackMode[];  // comma-joined on the wire if more than one
     Destinations?: ISMSDestination[];
     ToNumber?: string;
     GroupID?: string;
@@ -1991,7 +1991,7 @@ interface IWhatsAppArgs {
     Reference?: string;
     Message?: string;           // required unless TemplateID is set
     TemplateID?: string;
-    FallbackMode?: WhatsAppFallbackMode;
+    FallbackMode?: WhatsAppFallbackMode | WhatsAppFallbackMode[];  // comma-joined on the wire if more than one
     FromNumber?: string;
     Destinations?: IWhatsAppDestination[];
     ToNumber?: string;
@@ -2040,7 +2040,7 @@ interface IRCSArgs {
     Reference?: string;
     Message?: string;           // required unless TemplateID is set
     TemplateID?: string;
-    FallbackMode?: RCSFallbackMode;
+    FallbackMode?: RCSFallbackMode | RCSFallbackMode[];  // comma-joined on the wire if more than one
     FromNumber?: string;
     Destinations?: IRCSDestination[];
     ToNumber?: string;

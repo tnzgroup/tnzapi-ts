@@ -146,4 +146,4 @@ const result = await client.Messaging.WhatsApp.SendMessage({
 
 - [README — WhatsApp](../README.md#whatsapp)
 - [TypeScript interface source](../src/Api/Messaging/interfaces/IWhatsAppArgs.ts)
-- [More examples](../examples/messaging/send-whatsapp.ts)
+- [More examples](../samples/messaging/send-whatsapp.ts)

@@ -175,4 +175,4 @@ const result = await client.Messaging.SMS.SendMessage({
 
 - [README — SMS](../README.md#sms)
 - [TypeScript interface source](../src/Api/Messaging/interfaces/ISMSArgs.ts)
-- [More examples](../examples/messaging/send-sms.ts)
+- [More examples](../samples/messaging/send-sms.ts)

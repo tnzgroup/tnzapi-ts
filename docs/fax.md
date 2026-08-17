@@ -157,4 +157,4 @@ const result = await msg.SendMessage({ Reference: 'bulk-fax-run-1' });
 
 - [README — Fax](../README.md#fax)
 - [TypeScript interface source](../src/Api/Messaging/interfaces/IFaxArgs.ts)
-- [More examples](../examples/messaging/send-fax.ts)
+- [More examples](../samples/messaging/send-fax.ts)

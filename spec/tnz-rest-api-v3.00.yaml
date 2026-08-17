@@ -466,9 +466,9 @@ paths:
                   default: false
                 FallbackMode:
                   type: string
-                  description: If the SMS delivery fails, send as a voice call.
-                  enum: [None, Voice]
-                  example: 'Voice'
+                  description: Fallback channel(s) to use if SMS delivery fails, tried in order. Accepts a single value or a comma-separated list.
+                  enum: [None, RCS, WAPP, Voice]
+                  example: 'Voice, WAPP'
                 Files:
                   $ref: "#/components/schemas/Files"
 
@@ -3262,7 +3262,12 @@ paths:
                   $ref: "#/components/schemas/SubAccount"
                 Department:
                   $ref: "#/components/schemas/Department"
-                FromNumber: 
+                FallbackMode:
+                  type: string
+                  description: Fallback channel(s) to use if RCS delivery fails, tried in order. Accepts a single value or a comma-separated list.
+                  enum: [None, SMS, Voice, WAPP]
+                  example: 'SMS, Voice'
+                FromNumber:
                   type: string
                   description: Sets the Sender ID on your sent message (in E164 format without the leading +).
                   example: '61408080909'
@@ -3297,6 +3302,7 @@ paths:
                 value:
                   Message: 'Hello [[FirstName]], this is an RCS notification from Company One Ltd. Reply STOP to OptOut.'
                   TemplateID: 123e4567-e89b-12d3-a456-426614174000
+                  FallbackMode: 'SMS, Voice'
                   Destination: '+6421000001'
                   Destinations:
                     - ContactID: 4000000b-f002-4007-b00a-c00000000001

@@ -185,4 +185,4 @@ const result = await msg.SendMessage({
 
 - [README — Email](../README.md#email)
 - [TypeScript interface source](../src/Api/Messaging/interfaces/IEmailArgs.ts)
-- [More examples](../examples/messaging/send-email.ts)
+- [More examples](../samples/messaging/send-email.ts)

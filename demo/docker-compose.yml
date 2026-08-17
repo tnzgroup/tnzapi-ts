@@ -1,0 +1,50 @@
+name: tnzapi-ts-demo
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: demo/api/Dockerfile
+    ports:
+      - "5080:5080"
+    # env_file (not `environment: - TNZ_AUTH_TOKEN=${TNZ_AUTH_TOKEN}`) so a missing/empty .env
+    # leaves TNZ_AUTH_TOKEN completely unset in the container rather than forcing it to an empty
+    # string — an explicit empty env var would silently blank out a real token read some other
+    # way. required: false means "no .env file" is fine.
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      # Mounts the whole repo root (matching the build context) so Nest's --watch (see the
+      # Dockerfile's CMD) sees live edits to both demo/api/ and the sibling tnzapi-ts SDK it
+      # imports. node_modules is excluded via an anonymous volume so the image's Linux-built
+      # native deps aren't overwritten by whatever's on the host (Windows/Mac) disk. dist/ is NOT
+      # excluded the same way: nest-cli.json's deleteOutDir rmdir's the whole directory once at
+      # startup before recompiling into it, which fails with EBUSY against an anonymous-volume
+      # mount point (Docker won't let the mount target itself be removed) — as a plain
+      # bind-mounted subdirectory it works fine, and --watch rebuilds it fresh on every
+      # container start regardless of whatever (possibly stale, possibly absent on a fresh clone)
+      # dist/ existed on the host beforehand.
+      - ..:/src
+      - /src/demo/api/node_modules
+    networks:
+      - demo
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    ports:
+      - "5373:5373"
+    environment:
+      - VITE_API_PROXY_TARGET=http://api:5080
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+    depends_on:
+      - api
+    networks:
+      - demo
+
+networks:
+  demo:

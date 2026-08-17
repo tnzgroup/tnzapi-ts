@@ -94,6 +94,30 @@ describe('RCSApi — validation', () => {
         expect(payload.FallbackMode).toBe('None');
     });
 
+    it('sends a single real (non-None) FallbackMode value unwrapped in payload', async () => {
+        const { api, httpClient } = makeApi();
+        httpClient.post.mockResolvedValueOnce({ Result: 'Success', MessageID: 'rcs002b' });
+        await api.SendMessage({
+            Message: 'Hi',
+            Destinations: [{ ToNumber: '+64211111111' }],
+            FallbackMode: RCSFallbackMode.SMS,
+        });
+        const payload = httpClient.post.mock.calls[0][1] as RCSApiRequestDTO & Record<string, unknown>;
+        expect(payload.FallbackMode).toBe('SMS');
+    });
+
+    it('joins a multi-value FallbackMode into a comma-separated string in payload', async () => {
+        const { api, httpClient } = makeApi();
+        httpClient.post.mockResolvedValueOnce({ Result: 'Success', MessageID: 'rcs003' });
+        await api.SendMessage({
+            Message: 'Hi',
+            Destinations: [{ ToNumber: '+64211111111' }],
+            FallbackMode: [RCSFallbackMode.SMS, RCSFallbackMode.Voice, RCSFallbackMode.WAPP],
+        });
+        const payload = httpClient.post.mock.calls[0][1] as RCSApiRequestDTO & Record<string, unknown>;
+        expect(payload.FallbackMode).toBe('SMS, Voice, WAPP');
+    });
+
     it('sends Message (not MessageText) in payload', async () => {
         const { api, httpClient } = makeApi();
         httpClient.post.mockResolvedValueOnce({ Result: 'Success', MessageID: 'rcs002' });

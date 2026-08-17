@@ -1,0 +1,9 @@
+node_modules/
+dist/
+demo/api/node_modules/
+demo/api/dist/
+demo/web/node_modules/
+demo/web/dist/
+.git/
+**/.env.local
+**/.env
