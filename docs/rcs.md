@@ -29,7 +29,7 @@ console.log(result.MessageID);
 | `FallbackMode` | `RCSFallbackMode` | No | Fallback channel if RCS is unavailable. Default: `None`. |
 | `FromNumber` | `string` | No | Sender ID or number (if your account supports multiple). |
 | `Reference` | `string` | No | Internal reference returned in reports and webhooks. |
-| `SendTime` | `string` | No | Schedule delivery: `'YYYY-MM-DDTHH:mm:ss'` in the given `Timezone`. |
+| `SendTime` | `string` | No | Schedule delivery: `'YYYY-MM-DD HH:mm'` in the given `Timezone`. |
 | `Timezone` | `string` | No | Windows Timezone name for `SendTime` (e.g. `'New Zealand'`, `'AUS Eastern'`). |
 | `SubAccount` | `string` | No | Sub-account code for billing separation. |
 | `Department` | `string` | No | Department code. |
@@ -113,7 +113,7 @@ const result = await client.Messaging.RCS.SendMessage({
 const result = await client.Messaging.RCS.SendMessage({
   Message: 'Staff meeting at 9am today.',
   Destinations: [{ GroupID: '4000000b-f002-4007-b00a-c00000000002' }],
-  SendTime: '2027-01-01 09:00:00',
+  SendTime: '2027-01-01 09:00',
   Timezone: 'New Zealand',
 });
 ```

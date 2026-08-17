@@ -36,7 +36,7 @@ console.log(result.MessageID);
 | `RetryAttempts` | `number` | No | Number of retry attempts on failure. Maximum: 5. |
 | `RetryPeriod` | `number` | No | Minutes between retry attempts. Maximum: 60. |
 | `Reference` | `string` | No | Internal reference returned in reports and webhooks. |
-| `SendTime` | `string` | No | Schedule delivery: `'YYYY-MM-DDTHH:mm:ss'` in the given `Timezone`. |
+| `SendTime` | `string` | No | Schedule delivery: `'YYYY-MM-DD HH:mm'` in the given `Timezone`. |
 | `Timezone` | `string` | No | Windows Timezone name for `SendTime` (e.g. `'New Zealand'`, `'AUS Eastern'`). |
 | `SubAccount` | `string` | No | Sub-account code for billing separation. |
 | `Department` | `string` | No | Department code. |
@@ -124,7 +124,7 @@ const result = await client.Messaging.Fax.SendMessage({
     { ToNumber: '+6491000001', Company: 'Acme Ltd' },
     { ToNumber: '+6491000002', Company: 'Globex Corp' },
   ],
-  SendTime: '2027-01-01 09:00:00',
+  SendTime: '2027-01-01 09:00',
   Timezone: 'New Zealand',
   WebhookCallbackURL: 'https://yourapp.example.com/webhooks/fax',
   WebhookCallbackFormat: WebhookCallbackFormat.JSON,

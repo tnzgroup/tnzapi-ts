@@ -29,7 +29,7 @@ console.log(result.MessageID);
 | `FallbackMode` | `string` | No | Fallback channel(s) if WhatsApp delivery fails. Can be a single value or comma-separated list: `None`, `RCS`, `SMS`, `Voice` (e.g. `'SMS, Voice'`). |
 | `FromNumber` | `string` | No | WhatsApp sender number (if your account supports multiple). |
 | `Reference` | `string` | No | Internal reference returned in reports and webhooks. |
-| `SendTime` | `string` | No | Schedule delivery: `'YYYY-MM-DDTHH:mm:ss'` in the given `Timezone`. |
+| `SendTime` | `string` | No | Schedule delivery: `'YYYY-MM-DD HH:mm'` in the given `Timezone`. |
 | `Timezone` | `string` | No | Windows Timezone name for `SendTime` (e.g. `'New Zealand'`, `'AUS Eastern'`). |
 | `SubAccount` | `string` | No | Sub-account code for billing separation. |
 | `Department` | `string` | No | Department code. |
@@ -126,7 +126,7 @@ const result = await client.Messaging.WhatsApp.SendMessage({
   Message: 'Office closed today.',
   Destinations: [{ GroupID: '4000000b-f002-4007-b00a-c00000000003' }],
   FromNumber: '+6491234567',
-  SendTime: '2027-01-01 07:00:00',
+  SendTime: '2027-01-01 07:00',
   Timezone: 'New Zealand',
 });
 ```

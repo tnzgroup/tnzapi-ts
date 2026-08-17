@@ -26,7 +26,7 @@ console.log(result.MessageID);
 | `WorkflowTemplateID` | `string (uuid)` | **Yes** | UUID of the workflow template to trigger. |
 | `Destinations` | `IWorkflowDestination[]` | Yes† | One or more contacts to run the workflow for. |
 | `Reference` | `string` | No | Internal reference returned in reports and webhooks. |
-| `SendTime` | `string` | No | Schedule workflow start: `'YYYY-MM-DDTHH:mm:ss'` in the given `Timezone`. |
+| `SendTime` | `string` | No | Schedule workflow start: `'YYYY-MM-DD HH:mm'` in the given `Timezone`. |
 | `Timezone` | `string` | No | Windows Timezone name for `SendTime` (e.g. `'New Zealand'`, `'AUS Eastern'`). |
 | `SubAccount` | `string` | No | Sub-account code for billing separation. |
 | `Department` | `string` | No | Department code. |
@@ -123,7 +123,7 @@ const result = await client.Messaging.Workflow.SendMessage({
     { ContactID: '8000000a-f002-4007-b00a-d00000000002' },
     { ContactID: '8000000a-f002-4007-b00a-d00000000003' },
   ],
-  SendTime: '2027-01-01 09:00:00',
+  SendTime: '2027-01-01 09:00',
   Timezone: 'New Zealand',
 });
 ```

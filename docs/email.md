@@ -37,7 +37,7 @@ console.log(result.MessageID);
 | `BCCEmail` | `string` | No | BCC email address (not visible to recipients). |
 | `ReplyTo` | `string` | No | Reply-to address. |
 | `Reference` | `string` | No | Internal reference returned in reports and webhooks. |
-| `SendTime` | `string` | No | Schedule delivery: `'YYYY-MM-DDTHH:mm:ss'` in the given `Timezone`. |
+| `SendTime` | `string` | No | Schedule delivery: `'YYYY-MM-DD HH:mm'` in the given `Timezone`. |
 | `Timezone` | `string` | No | Windows Timezone name for `SendTime` (e.g. `'New Zealand'`, `'AUS Eastern'`). |
 | `SubAccount` | `string` | No | Sub-account code for billing separation. |
 | `Department` | `string` | No | Department code. |
@@ -139,7 +139,7 @@ const result = await client.Messaging.Email.SendMessage({
   EmailSubject: 'Hello [[FirstName]]',
   MessageHTML: '<p>Hi [[FirstName]], welcome to [[Company]]!</p>',
   Destinations: [{ GroupID: '4000000b-f002-4007-b00a-c00000000002' }],
-  SendTime: '2027-01-01 08:00:00',
+  SendTime: '2027-01-01 08:00',
   Timezone: 'New Zealand',
   WebhookCallbackURL: 'https://yourapp.example.com/webhooks/email',
   WebhookCallbackFormat: WebhookCallbackFormat.JSON,

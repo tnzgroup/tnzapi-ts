@@ -20,7 +20,7 @@ All channels share these parameters. See [README — Common Parameters](../READM
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `Reference` | `string` | Your internal reference, echoed back in reports and webhooks. |
-| `SendTime` | `string` | Scheduled send time: `'YYYY-MM-DDTHH:mm:ss'` in the given `Timezone`. |
+| `SendTime` | `string` | Scheduled send time: `'YYYY-MM-DD HH:mm'` in the given `Timezone`. |
 | `Timezone` | `string` | Windows Timezone name (e.g. `'New Zealand'`, `'AUS Eastern'`). |
 | `SubAccount` | `string` | Billing sub-account code. |
 | `Department` | `string` | Department code. |

@@ -41,7 +41,7 @@ console.log(result.MessageID);
 | `Options` | `string` | No | Advanced voice options: recording survey responses, IVR, DTMF capture, etc. Contact TNZ for supported values. |
 | `Keypads` | `ITTSKeypad[]` | No | Keypad routing rules (see below). |
 | `Reference` | `string` | No | Internal reference returned in reports and webhooks. |
-| `SendTime` | `string` | No | Schedule delivery: `'YYYY-MM-DDTHH:mm:ss'` in the given `Timezone`. |
+| `SendTime` | `string` | No | Schedule delivery: `'YYYY-MM-DD HH:mm'` in the given `Timezone`. |
 | `Timezone` | `string` | No | Windows Timezone name for `SendTime` (e.g. `'New Zealand'`, `'AUS Eastern'`). |
 | `SubAccount` | `string` | No | Sub-account code for billing separation. |
 | `Department` | `string` | No | Department code. |
@@ -161,7 +161,7 @@ const result = await client.Messaging.TTS.SendMessage({
 const result = await client.Messaging.TTS.SendMessage({
   MessageToPeople: 'Staff meeting at 2pm today in the main boardroom.',
   Destinations: [{ GroupID: '4000000b-f002-4007-b00a-c00000000002' }],
-  SendTime: '2027-01-01 08:00:00',
+  SendTime: '2027-01-01 08:00',
   Timezone: 'New Zealand',
 });
 ```
